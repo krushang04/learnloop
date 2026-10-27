@@ -163,7 +163,7 @@ export function MyVideosPage() {
                     <h3 className="line-clamp-1 text-sm font-semibold text-slate-900 group-hover:text-brand-700">
                       {video.title}
                     </h3>
-                    <p className="mt-1 line-clamp-2 min-h-[2.5rem] text-xs text-slate-500">
+                    <p className="mt-1 line-clamp-2 h-8 text-xs text-slate-500">
                       {video.description || 'No description'}
                     </p>
 
