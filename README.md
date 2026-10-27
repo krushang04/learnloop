@@ -330,10 +330,18 @@ open the video again, which is the one place those figures need to be trustworth
 
 **The field is named for what it does.** It is labelled *completion length*, not
 *duration*, because it is not merely a fact about the file: it is the number completion is
-measured against, and it is editable. Overriding it in either direction misleads silently,
-so the form compares it with the file's real length and says what will happen — a shorter
-value means learners hit 100% with video still to play, and a longer one means nobody can
-reach the 95% threshold at all, which makes the video impossible to complete.
+measured against, and it is editable. The form compares it with the file's real length and
+treats the two directions differently, because only one of them is a legitimate choice:
+
+- **Shorter than the file** is allowed, with a warning. "Only the first half is required"
+  is a real policy, and the warning says how much video will be left unplayed and how many
+  assigned learners get recalculated.
+- **Longer than the file** is refused. Requiring 54 seconds of a 20-second video is not a
+  policy, it is an unreachable state: the 95% threshold can never be met, so nobody could
+  ever complete it. Saving is blocked rather than warned about.
+
+The check lives in the browser because that is the only place the file's true length is
+known — see the limitation below.
 
 **Questions cannot be skipped.** When the playhead reaches a question the video pauses and
 the overlay has no dismiss control. Seeking forward past several questions surfaces the
@@ -418,16 +426,23 @@ every validation guard, and the full learner journey through to `completed`.
    Settings. Nothing else depends on them.
 3. **No video upload.** Admins paste a URL. File upload would need object storage and a
    transcoding pipeline, which is well outside the scope here.
-4. **Transactions need a replica set.** The delete cascade falls back to sequential deletes
+4. **The unreachable-length check is client-side only.** The browser knows the file's
+   real length because it loads its metadata; the API only ever receives a URL and a
+   number, and does not fetch the video to verify it. So `PATCH /videos/:id` will still
+   accept a completion length longer than the file if called directly. Enforcing it server
+   side would mean the API range-requesting every video file on write, which is a lot of
+   network dependency and failure surface for a mistake the UI already prevents. The
+   consequence is a stuck video, not corrupted or unsafe data.
+5. **Transactions need a replica set.** The delete cascade falls back to sequential deletes
    on a standalone mongod, ordered children-first so an interrupted delete leaves the video
    reachable rather than orphaning rows.
-5. **Reports are computed per request.** Fine at this scale; a large deployment would want
+6. **Reports are computed per request.** Fine at this scale; a large deployment would want
    pre-aggregated rollups rather than recomputing a per-learner table on every load.
-6. **The learner assignment list filters in memory.** The result set is scoped to one
+7. **The learner assignment list filters in memory.** The result set is scoped to one
    learner's assignments, so an extra round trip would cost more than the in-memory pass.
    This would move into the aggregation pipeline if learners accumulated hundreds of videos.
-7. **Frontend tests are not included.** Testing effort went to the backend logic that
+8. **Frontend tests are not included.** Testing effort went to the backend logic that
    decides scores and completion; the UI was verified manually in a browser across both
    roles. Component tests would be the next addition.
-8. **No email, notifications or due-date enforcement.** `dueAt` is stored and displayed but
+9. **No email, notifications or due-date enforcement.** `dueAt` is stored and displayed but
    nothing acts on it.

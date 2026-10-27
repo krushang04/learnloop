@@ -397,6 +397,10 @@ function VideoSettings({ video }: { video: { _id: string; title: string; descrip
   }, [probe.status, probe.seconds, urlChanged, video.durationSeconds]);
 
   const handleSave = async () => {
+    // Nothing legitimate produces this state, so it is refused rather than
+    // warned about: you cannot require 54 seconds of a 20-second video.
+    if (isUnreachable) return;
+
     try {
       await updateVideo({
         id: video._id,
@@ -461,7 +465,7 @@ function VideoSettings({ video }: { video: { _id: string; title: string; descrip
           >
             <p className="font-medium">
               {isUnreachable
-                ? 'No one can complete this video.'
+                ? 'No one could complete this video, so this cannot be saved.'
                 : `This is longer than the video itself (${formatDuration(realLength)}).`}
             </p>
             <p className={`mt-1 ${isUnreachable ? 'text-red-800' : 'text-amber-800'}`}>
@@ -509,8 +513,13 @@ function VideoSettings({ video }: { video: { _id: string; title: string; descrip
             </p>
           </div>
         )}
-        <div className="flex justify-end border-t border-slate-200 pt-4">
-          <Button onClick={handleSave} isLoading={isLoading}>
+        <div className="flex flex-wrap items-center justify-end gap-3 border-t border-slate-200 pt-4">
+          {isUnreachable && (
+            <p className="mr-auto text-xs text-red-600">
+              Set the completion length to {formatDuration(realLength)} or less to save.
+            </p>
+          )}
+          <Button onClick={handleSave} isLoading={isLoading} disabled={isUnreachable}>
             Save changes
           </Button>
         </div>

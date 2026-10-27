@@ -10,6 +10,7 @@ import { Input, Textarea } from '@/components/ui/Input';
 import { CheckIcon, ChevronLeftIcon } from '@/components/Icons';
 import { Spinner } from '@/components/ui/Spinner';
 import { useVideoDuration } from '@/hooks/useVideoDuration';
+import { COMPLETION_THRESHOLD } from '@/types';
 import { formatDuration } from '@/lib/format';
 import { getErrorMessage } from '@/lib/baseQuery';
 
@@ -36,6 +37,13 @@ export function VideoFormPage() {
   // Reads the real length out of the file header as soon as a URL is pasted.
   const probe = useVideoDuration(videoUrl);
 
+  // A manual override longer than the file leaves the 95% threshold out of
+  // reach, so the video could never be completed. Refused rather than warned.
+  const typed = Number(durationSeconds) || 0;
+  const realLength = probe.status === 'ready' ? (probe.seconds ?? 0) : 0;
+  const isUnreachable =
+    realLength > 0 && typed > 0 && realLength / typed < COMPLETION_THRESHOLD;
+
   useEffect(() => {
     if (probe.status === 'ready' && probe.seconds && !isDurationManual) {
       setDurationSeconds(String(probe.seconds));
@@ -45,6 +53,15 @@ export function VideoFormPage() {
   const handleSubmit = async (event: FormEvent) => {
     event.preventDefault();
     setFormError(null);
+
+    if (isUnreachable) {
+      setFormError(
+        `A completion length of ${durationSeconds}s cannot be reached: the video is only ${formatDuration(
+          realLength,
+        )} long, so no one could ever complete it.`,
+      );
+      return;
+    }
 
     try {
       const created = await createVideo({
@@ -197,7 +214,7 @@ export function VideoFormPage() {
                   Cancel
                 </Button>
               </Link>
-              <Button type="submit" isLoading={isLoading}>
+              <Button type="submit" isLoading={isLoading} disabled={isUnreachable}>
                 Create video
               </Button>
             </div>
