@@ -1,0 +1,927 @@
+{
+  "info": {
+    "name": "LearnLoop API",
+    "description": "Video Learning + Interactive Quiz Builder.\n\nRun **Auth \u2192 Login as admin** and **Login as learner** first; both save their token into the collection variables used by every other request.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:4000/api"
+    },
+    {
+      "key": "adminToken",
+      "value": ""
+    },
+    {
+      "key": "learnerToken",
+      "value": ""
+    },
+    {
+      "key": "videoId",
+      "value": ""
+    },
+    {
+      "key": "questionId",
+      "value": ""
+    },
+    {
+      "key": "learnerId",
+      "value": ""
+    }
+  ],
+  "item": [
+    {
+      "name": "Auth",
+      "item": [
+        {
+          "name": "Login as admin",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/auth/login",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "auth",
+                "login"
+              ]
+            },
+            "description": "Saves the returned token into {{adminToken}}.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"admin@learnloop.dev\",\n  \"password\": \"Admin@123\"\n}"
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const body = pm.response.json();",
+                  "if (body.success) {",
+                  "  pm.collectionVariables.set('adminToken', body.data.accessToken);",
+                  "  pm.test('admin token saved', () => pm.expect(body.data.user.role).to.eql('admin'));",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Login as learner",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/auth/login",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "auth",
+                "login"
+              ]
+            },
+            "description": "Saves the returned token into {{learnerToken}}.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"asha@learnloop.dev\",\n  \"password\": \"Learner@123\"\n}"
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const body = pm.response.json();",
+                  "if (body.success) {",
+                  "  pm.collectionVariables.set('learnerToken', body.data.accessToken);",
+                  "  pm.test('learner token saved', () => pm.expect(body.data.user.role).to.eql('learner'));",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Register (learner)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/auth/register",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "auth",
+                "register"
+              ]
+            },
+            "description": "Self-service signup. Always creates a learner, never an admin.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"New Learner\",\n  \"email\": \"new.learner@learnloop.dev\",\n  \"password\": \"Learner@123\"\n}"
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Me",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/auth/me",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "auth",
+                "me"
+              ]
+            },
+            "description": "Current user; used by the SPA to rehydrate a session on refresh."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Videos (Admin)",
+      "item": [
+        {
+          "name": "List videos",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/videos?search=&status=published&page=1&limit=10",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "videos"
+              ],
+              "query": [
+                {
+                  "key": "search",
+                  "value": ""
+                },
+                {
+                  "key": "status",
+                  "value": "published"
+                },
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "10"
+                }
+              ]
+            },
+            "description": "Supports search, status, tag and pagination."
+          },
+          "response": []
+        },
+        {
+          "name": "Create video",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/videos",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "videos"
+              ]
+            },
+            "description": "Copy the returned _id into the {{videoId}} collection variable.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Introduction to Incoterms\",\n  \"description\": \"A short primer.\",\n  \"videoUrl\": \"https://download.samplelib.com/mp4/sample-30s.mp4\",\n  \"thumbnailUrl\": \"https://picsum.photos/seed/incoterms/640/360\",\n  \"durationSeconds\": 30,\n  \"tags\": [\n    \"logistics\"\n  ]\n}"
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get video (with questions + answers)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/videos/{{videoId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "videos",
+                "{{videoId}}"
+              ]
+            },
+            "description": ""
+          },
+          "response": []
+        },
+        {
+          "name": "Update video",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/videos/{{videoId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "videos",
+                "{{videoId}}"
+              ]
+            },
+            "description": "Shortening the duration past an existing question timestamp is rejected with 400.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Introduction to Incoterms (v2)\"\n}"
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Publish video",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/videos/{{videoId}}/publish",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "videos",
+                "{{videoId}}",
+                "publish"
+              ]
+            },
+            "description": "Rejected with 400 if the duration is unset or a question has no correct answer."
+          },
+          "response": []
+        },
+        {
+          "name": "Unpublish video",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/videos/{{videoId}}/unpublish",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "videos",
+                "{{videoId}}",
+                "unpublish"
+              ]
+            },
+            "description": "Hides it from learners; assignments and progress are retained."
+          },
+          "response": []
+        },
+        {
+          "name": "Delete video",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/videos/{{videoId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "videos",
+                "{{videoId}}"
+              ]
+            },
+            "description": "Cascades to questions, assignments, progress and responses."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Questions (Admin)",
+      "item": [
+        {
+          "name": "List questions",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/videos/{{videoId}}/questions",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "videos",
+                "{{videoId}}",
+                "questions"
+              ]
+            },
+            "description": ""
+          },
+          "response": []
+        },
+        {
+          "name": "Add single choice",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/videos/{{videoId}}/questions",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "videos",
+                "{{videoId}}",
+                "questions"
+              ]
+            },
+            "description": "Two questions cannot share a timestamp on one video (409).",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"timestampSeconds\": 8,\n  \"type\": \"single_choice\",\n  \"prompt\": \"What does an HS code identify?\",\n  \"options\": [\n    {\n      \"key\": \"a\",\n      \"text\": \"A traded product\"\n    },\n    {\n      \"key\": \"b\",\n      \"text\": \"A shipping container\"\n    }\n  ],\n  \"correctOptionKeys\": [\n    \"a\"\n  ],\n  \"points\": 2,\n  \"explanation\": \"HS codes classify products.\"\n}"
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Add multiple choice",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/videos/{{videoId}}/questions",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "videos",
+                "{{videoId}}",
+                "questions"
+              ]
+            },
+            "description": "Needs at least two correct options, otherwise use single_choice.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"timestampSeconds\": 16,\n  \"type\": \"multiple_choice\",\n  \"prompt\": \"Which are consequences of misclassification?\",\n  \"options\": [\n    {\n      \"key\": \"a\",\n      \"text\": \"Duty errors\"\n    },\n    {\n      \"key\": \"b\",\n      \"text\": \"Border delays\"\n    },\n    {\n      \"key\": \"c\",\n      \"text\": \"Cheaper fuel\"\n    }\n  ],\n  \"correctOptionKeys\": [\n    \"a\",\n    \"b\"\n  ],\n  \"points\": 3\n}"
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Add short answer",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/videos/{{videoId}}/questions",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "videos",
+                "{{videoId}}",
+                "questions"
+              ]
+            },
+            "description": "Graded case-insensitively after trimming.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"timestampSeconds\": 24,\n  \"type\": \"short_answer\",\n  \"prompt\": \"What does HS stand for?\",\n  \"acceptedAnswers\": [\n    \"Harmonized System\",\n    \"HS\"\n  ],\n  \"points\": 2\n}"
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Update question",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/questions/{{questionId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "questions",
+                "{{questionId}}"
+              ]
+            },
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"points\": 5\n}"
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Delete question",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/questions/{{questionId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "questions",
+                "{{questionId}}"
+              ]
+            },
+            "description": "Also deletes every learner answer to it."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Assignments (Admin)",
+      "item": [
+        {
+          "name": "List learners",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/users/learners?search=",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "users",
+                "learners"
+              ],
+              "query": [
+                {
+                  "key": "search",
+                  "value": ""
+                }
+              ]
+            },
+            "description": ""
+          },
+          "response": []
+        },
+        {
+          "name": "Assign video to learners",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/videos/{{videoId}}/assignments",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "videos",
+                "{{videoId}}",
+                "assignments"
+              ]
+            },
+            "description": "Idempotent: re-assigning reports alreadyAssigned instead of duplicating.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"learnerIds\": [\n    \"{{learnerId}}\"\n  ]\n}"
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "List assignments for video",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/videos/{{videoId}}/assignments",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "videos",
+                "{{videoId}}",
+                "assignments"
+              ]
+            },
+            "description": ""
+          },
+          "response": []
+        },
+        {
+          "name": "Unassign a learner",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/videos/{{videoId}}/assignments/{{learnerId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "videos",
+                "{{videoId}}",
+                "assignments",
+                "{{learnerId}}"
+              ]
+            },
+            "description": "Progress and answers are kept for reporting."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Learning (Learner)",
+      "item": [
+        {
+          "name": "My assignments",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{learnerToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/me/assignments?search=&status=",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "me",
+                "assignments"
+              ],
+              "query": [
+                {
+                  "key": "search",
+                  "value": ""
+                },
+                {
+                  "key": "status",
+                  "value": ""
+                }
+              ]
+            },
+            "description": "Only published, assigned videos. Supports search and status filters."
+          },
+          "response": []
+        },
+        {
+          "name": "Player payload",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{learnerToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/me/assignments/{{videoId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "me",
+                "assignments",
+                "{{videoId}}"
+              ]
+            },
+            "description": "Video, questions WITHOUT correct answers, saved progress and previous answers."
+          },
+          "response": []
+        },
+        {
+          "name": "Save playback position",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{learnerToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/me/assignments/{{videoId}}/progress",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "me",
+                "assignments",
+                "{{videoId}}",
+                "progress"
+              ]
+            },
+            "description": "Autosave target. Completion percentage only ever moves forward.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"positionSeconds\": 12,\n  \"durationSeconds\": 30\n}"
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Submit answer",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{learnerToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/me/assignments/{{videoId}}/questions/{{questionId}}/answer",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "me",
+                "assignments",
+                "{{videoId}}",
+                "questions",
+                "{{questionId}}",
+                "answer"
+              ]
+            },
+            "description": "Graded server-side. Use answerText instead for short_answer questions.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"selectedOptionKeys\": [\n    \"a\"\n  ]\n}"
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Reports (Admin)",
+      "item": [
+        {
+          "name": "Overview",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/reports/overview",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "reports",
+                "overview"
+              ]
+            },
+            "description": ""
+          },
+          "response": []
+        },
+        {
+          "name": "Video report",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/reports/videos/{{videoId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "reports",
+                "videos",
+                "{{videoId}}"
+              ]
+            },
+            "description": "Per-learner progress table."
+          },
+          "response": []
+        },
+        {
+          "name": "Learner answer sheet",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/reports/videos/{{videoId}}/learners/{{learnerId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "reports",
+                "videos",
+                "{{videoId}}",
+                "learners",
+                "{{learnerId}}"
+              ]
+            },
+            "description": ""
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Health",
+      "item": [
+        {
+          "name": "Health check",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/health",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "health"
+              ]
+            },
+            "description": ""
+          },
+          "response": []
+        }
+      ]
+    }
+  ]
+}
