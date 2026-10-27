@@ -48,14 +48,14 @@ const SAMPLE_VIDEOS = [
     title: 'Getting Started with Trade Compliance',
     description:
       'A short primer on why classification matters, who regulates it, and what happens when a shipment is misdeclared.',
-    videoUrl: 'https://storage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4',
-    thumbnailUrl: 'https://storage.googleapis.com/gtv-videos-bucket/sample/images/ForBiggerBlazes.jpg',
-    durationSeconds: 15,
+    videoUrl: 'https://download.samplelib.com/mp4/sample-30s.mp4',
+    thumbnailUrl: 'https://picsum.photos/seed/compliance/640/360',
+    durationSeconds: 30,
     tags: ['compliance', 'onboarding'],
     status: VideoStatus.PUBLISHED,
     questions: [
       {
-        timestampSeconds: 4,
+        timestampSeconds: 8,
         type: QuestionType.SINGLE_CHOICE,
         prompt: 'What is the primary purpose of an HS code?',
         options: [
@@ -70,7 +70,7 @@ const SAMPLE_VIDEOS = [
           'HS codes are the internationally standardised way of classifying a product so customs authorities can apply the right duty and controls.',
       },
       {
-        timestampSeconds: 9,
+        timestampSeconds: 17,
         type: QuestionType.MULTIPLE_CHOICE,
         prompt: 'Which of these can a misclassification lead to? (Select all that apply)',
         options: [
@@ -85,7 +85,7 @@ const SAMPLE_VIDEOS = [
           'Misclassification affects duty, clearance time and compliance standing. It has nothing to do with fuel surcharges.',
       },
       {
-        timestampSeconds: 13,
+        timestampSeconds: 26,
         type: QuestionType.SHORT_ANSWER,
         prompt: 'What does "HS" stand for in HS code?',
         acceptedAnswers: ['harmonized system', 'harmonised system', 'harmonized', 'hs'],
@@ -98,14 +98,14 @@ const SAMPLE_VIDEOS = [
     title: 'Reading a Bill of Lading',
     description:
       'Walk through a real bill of lading field by field and learn which parties and terms actually matter.',
-    videoUrl: 'https://storage.googleapis.com/gtv-videos-bucket/sample/ForBiggerEscapes.mp4',
-    thumbnailUrl: 'https://storage.googleapis.com/gtv-videos-bucket/sample/images/ForBiggerEscapes.jpg',
-    durationSeconds: 15,
+    videoUrl: 'https://download.samplelib.com/mp4/sample-20s.mp4',
+    thumbnailUrl: 'https://picsum.photos/seed/lading/640/360',
+    durationSeconds: 20,
     tags: ['documentation', 'logistics'],
     status: VideoStatus.PUBLISHED,
     questions: [
       {
-        timestampSeconds: 5,
+        timestampSeconds: 6,
         type: QuestionType.SINGLE_CHOICE,
         prompt: 'Who is the "consignee" on a bill of lading?',
         options: [
@@ -119,7 +119,7 @@ const SAMPLE_VIDEOS = [
         explanation: 'The consignee is the receiving party — the shipper is the one sending.',
       },
       {
-        timestampSeconds: 11,
+        timestampSeconds: 14,
         type: QuestionType.SHORT_ANSWER,
         prompt: 'Which three-letter Incoterm means the seller clears the goods for export but the buyer pays freight?',
         acceptedAnswers: ['fob', 'f.o.b.'],
@@ -132,14 +132,14 @@ const SAMPLE_VIDEOS = [
     title: 'Sanctions and Denied Party Screening',
     description:
       'How screening works, which lists matter, and what to do when you get a hit.',
-    videoUrl: 'https://storage.googleapis.com/gtv-videos-bucket/sample/ForBiggerFun.mp4',
-    thumbnailUrl: 'https://storage.googleapis.com/gtv-videos-bucket/sample/images/ForBiggerFun.jpg',
-    durationSeconds: 60,
+    videoUrl: 'https://download.samplelib.com/mp4/sample-15s.mp4',
+    thumbnailUrl: 'https://picsum.photos/seed/sanctions/640/360',
+    durationSeconds: 15,
     tags: ['compliance', 'risk'],
     status: VideoStatus.PUBLISHED,
     questions: [
       {
-        timestampSeconds: 20,
+        timestampSeconds: 5,
         type: QuestionType.MULTIPLE_CHOICE,
         prompt: 'Which parties should be screened before a shipment? (Select all that apply)',
         options: [
@@ -153,7 +153,7 @@ const SAMPLE_VIDEOS = [
         explanation: 'Every external party in the transaction chain is screened. Internal teams are not.',
       },
       {
-        timestampSeconds: 45,
+        timestampSeconds: 11,
         type: QuestionType.SINGLE_CHOICE,
         prompt: 'You get a potential name match on a sanctions list. What is the correct first step?',
         options: [
@@ -173,14 +173,14 @@ const SAMPLE_VIDEOS = [
     title: 'Advanced Tariff Engineering (Draft)',
     description:
       'Still being written — kept unpublished so you can see how a draft behaves: invisible to learners until published.',
-    videoUrl: 'https://storage.googleapis.com/gtv-videos-bucket/sample/ForBiggerJoyrides.mp4',
-    thumbnailUrl: 'https://storage.googleapis.com/gtv-videos-bucket/sample/images/ForBiggerJoyrides.jpg',
-    durationSeconds: 15,
+    videoUrl: 'https://test-videos.co.uk/vids/bigbuckbunny/mp4/h264/360/Big_Buck_Bunny_360_10s_1MB.mp4',
+    thumbnailUrl: 'https://picsum.photos/seed/tariff/640/360',
+    durationSeconds: 10,
     tags: ['advanced'],
     status: VideoStatus.DRAFT,
     questions: [
       {
-        timestampSeconds: 6,
+        timestampSeconds: 5,
         type: QuestionType.SINGLE_CHOICE,
         prompt: 'Is tariff engineering legal?',
         options: [
