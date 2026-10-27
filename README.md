@@ -310,8 +310,10 @@ reduces earned progress.
 **Duration is read from the file, not asked for.** Completion percentage is
 `maxWatched / duration`, so the denominator has to be right. Rather than trusting an admin
 to look the number up, the form loads the video's metadata (`preload="metadata"` — the
-header, not the whole file) the moment a URL is pasted and fills the field in. A manual
-edit wins over a later detection, and an unreachable URL falls back to typing it by hand.
+header, not the whole file) the moment a URL is pasted. There is no duration input on the
+form by default: it reports what it found, and only offers a field when detection cannot
+answer or the admin explicitly asks to set it by hand. An empty box captioned "detected
+automatically" is a worse prompt than no box at all.
 
 **Completion requires both watching and answering.** A video is `completed` only when the
 learner has watched ≥95% *and* answered every active question. Watching to the end while

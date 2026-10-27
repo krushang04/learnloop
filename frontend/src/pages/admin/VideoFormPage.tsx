@@ -7,7 +7,8 @@ import { PageHeader } from '@/layouts/AppLayout';
 import { Button } from '@/components/ui/Button';
 import { Card, CardBody } from '@/components/ui/Card';
 import { Input, Textarea } from '@/components/ui/Input';
-import { ChevronLeftIcon } from '@/components/Icons';
+import { CheckIcon, ChevronLeftIcon } from '@/components/Icons';
+import { Spinner } from '@/components/ui/Spinner';
 import { useVideoDuration } from '@/hooks/useVideoDuration';
 import { formatDuration } from '@/lib/format';
 import { getErrorMessage } from '@/lib/baseQuery';
@@ -121,7 +122,37 @@ export function VideoFormPage() {
               placeholder="https://cdn.example.com/lesson.jpg"
             />
 
-            <div className="grid gap-5 sm:grid-cols-2">
+            {/* Duration is a property of the URL, so it reports itself here rather
+                than sitting as an empty box the admin has to wonder about. The
+                input only appears when detection cannot answer, or when someone
+                deliberately asks to set it by hand. */}
+            {probe.status === 'probing' && (
+              <p className="flex items-center gap-2 text-sm text-slate-500">
+                <Spinner size="sm" />
+                Reading the duration from this video…
+              </p>
+            )}
+
+            {probe.status === 'ready' && !isDurationManual && (
+              <div className="flex flex-wrap items-center gap-2 rounded-lg bg-emerald-50 px-3 py-2.5 text-sm text-emerald-800 ring-1 ring-inset ring-emerald-200">
+                <CheckIcon width={16} height={16} />
+                <span>
+                  Duration detected:{' '}
+                  <strong className="font-semibold">
+                    {formatDuration(Number(durationSeconds) || 0)}
+                  </strong>
+                </span>
+                <button
+                  type="button"
+                  onClick={() => setDurationManual(true)}
+                  className="ml-auto font-medium text-emerald-900 underline underline-offset-2 hover:no-underline"
+                >
+                  Set manually
+                </button>
+              </div>
+            )}
+
+            {(probe.status === 'error' || isDurationManual) && (
               <Input
                 label="Duration (seconds)"
                 type="number"
@@ -131,25 +162,24 @@ export function VideoFormPage() {
                   setDurationManual(true);
                   setDurationSeconds(e.target.value);
                 }}
-                placeholder="Detected from the video"
-                error={probe.status === 'error' ? probe.error ?? undefined : undefined}
+                placeholder="e.g. 600"
+                required
+                error={probe.status === 'error' ? (probe.error ?? undefined) : undefined}
                 hint={
-                  probe.status === 'probing'
-                    ? 'Reading the video…'
-                    : probe.status === 'ready' && !isDurationManual
-                      ? `Detected automatically (${formatDuration(Number(durationSeconds) || 0)}). Edit to override.`
-                      : 'Filled in from the video URL. Required before publishing.'
+                  probe.status === 'error'
+                    ? undefined
+                    : 'Overriding the detected duration. Required before publishing.'
                 }
               />
+            )}
 
-              <Input
-                label="Tags"
-                value={tags}
-                onChange={(e) => setTags(e.target.value)}
-                placeholder="compliance, onboarding"
-                hint="Comma separated."
-              />
-            </div>
+            <Input
+              label="Tags"
+              value={tags}
+              onChange={(e) => setTags(e.target.value)}
+              placeholder="compliance, onboarding"
+              hint="Comma separated."
+            />
 
             {formError && (
               <div
