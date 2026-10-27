@@ -11,6 +11,7 @@ import { ClientSession, Connection, Model, Types } from 'mongoose';
 import { InjectConnection } from '@nestjs/mongoose';
 import { buildPaginationMeta, escapeRegex } from 'src/common/dto/pagination.dto';
 import { VideoStatus } from 'src/common/enums';
+import { ProgressService } from 'src/modules/progress/progress.service';
 import { QuestionsService } from 'src/modules/questions/questions.service';
 import { CreateVideoDto } from './dto/create-video.dto';
 import { QueryVideoDto } from './dto/query-video.dto';
@@ -34,6 +35,8 @@ export class VideosService {
     @InjectConnection() private readonly connection: Connection,
     @Inject(forwardRef(() => QuestionsService))
     private readonly questionsService: QuestionsService,
+    @Inject(forwardRef(() => ProgressService))
+    private readonly progressService: ProgressService,
   ) {}
 
   async create(dto: CreateVideoDto, adminId: string): Promise<VideoDocument> {
@@ -110,8 +113,25 @@ export class VideosService {
       }
     }
 
+    const durationChanged =
+      dto.durationSeconds !== undefined && dto.durationSeconds !== video.durationSeconds;
+
     Object.assign(video, dto);
-    return video.save();
+    const saved = await video.save();
+
+    // Completion percentage is watched/duration, so changing the duration
+    // invalidates every learner's stored figure. Re-derive them now rather than
+    // leaving the admin report showing numbers from the old setting.
+    if (durationChanged) {
+      const affected = await this.progressService.recalculateForVideo(video._id.toString());
+      if (affected) {
+        this.logger.log(
+          `Duration of "${video.title}" changed; recalculated ${affected} progress record(s).`,
+        );
+      }
+    }
+
+    return saved;
   }
 
   async setStatus(id: string, status: VideoStatus): Promise<VideoDocument> {

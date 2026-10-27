@@ -16,6 +16,7 @@ import { ApiBearerAuth, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagg
 import { Roles } from 'src/common/decorators/roles.decorator';
 import { UserRole } from 'src/common/enums';
 import { ParseObjectIdPipe } from 'src/common/pipes/parse-object-id.pipe';
+import { ProgressService } from 'src/modules/progress/progress.service';
 import { VideosService } from 'src/modules/videos/videos.service';
 import { CreateQuestionDto } from './dto/create-question.dto';
 import { UpdateQuestionDto } from './dto/update-question.dto';
@@ -30,6 +31,8 @@ export class QuestionsController {
     private readonly questionsService: QuestionsService,
     @Inject(forwardRef(() => VideosService))
     private readonly videosService: VideosService,
+    @Inject(forwardRef(() => ProgressService))
+    private readonly progressService: ProgressService,
   ) {}
 
   @Get('videos/:videoId/questions')
@@ -55,7 +58,12 @@ export class QuestionsController {
         `Timestamp ${dto.timestampSeconds}s is past the end of this video (${video.durationSeconds}s)`,
       );
     }
-    return this.questionsService.create(videoId, dto);
+    const created = await this.questionsService.create(videoId, dto);
+
+    // Completing a video requires answering every question, so a new one means
+    // learners who had finished the old set are no longer finished.
+    await this.progressService.recalculateForVideo(videoId);
+    return created;
   }
 
   @Patch('questions/:id')
@@ -68,6 +76,8 @@ export class QuestionsController {
   @HttpCode(HttpStatus.NO_CONTENT)
   @ApiOperation({ summary: 'Delete a question' })
   async remove(@Param('id', ParseObjectIdPipe) id: string) {
-    await this.questionsService.remove(id);
+    const videoId = await this.questionsService.remove(id);
+    // One fewer question to answer can be what tips a learner into completed.
+    await this.progressService.recalculateForVideo(videoId.toString());
   }
 }

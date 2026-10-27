@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { Module, forwardRef } from '@nestjs/common';
 import { MongooseModule } from '@nestjs/mongoose';
 import { QuestionsModule } from 'src/modules/questions/questions.module';
 import { Response, ResponseSchema } from 'src/modules/responses/schemas/response.schema';
@@ -12,8 +12,8 @@ import { Progress, ProgressSchema } from './schemas/progress.schema';
       { name: Progress.name, schema: ProgressSchema },
       { name: Response.name, schema: ResponseSchema },
     ]),
-    QuestionsModule,
-    VideosModule,
+    forwardRef(() => QuestionsModule),
+    forwardRef(() => VideosModule),
   ],
   providers: [ProgressService],
   exports: [ProgressService],

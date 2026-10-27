@@ -320,6 +320,14 @@ learner has watched ≥95% *and* answered every active question. Watching to the
 skipping every question is not completing the lesson. The 95% threshold exists because
 videos rarely get watched to the literal final frame.
 
+**Editing a video re-derives everyone's progress.** Completion percentage is
+`maxWatched / duration` and completion status also depends on the question count, so
+changing either silently invalidates every stored progress row. Changing a duration, or
+adding or deleting a question, recalculates all of that video's progress immediately —
+and clamps any saved position that now sits past the end. Without it the admin report
+keeps showing figures that were true under the old settings until each learner happens to
+open the video again, which is the one place those figures need to be trustworthy.
+
 **Questions cannot be skipped.** When the playhead reaches a question the video pauses and
 the overlay has no dismiss control. Seeking forward past several questions surfaces the
 *earliest* unanswered one and seeks back to it, so skipping ahead does not skip the quiz.
@@ -344,7 +352,7 @@ picks up where they left off.
 
 ```bash
 cd backend
-npm test              # 23 unit tests
+npm test              # 29 unit tests
 npm run test:cov      # with coverage
 ```
 
@@ -359,6 +367,11 @@ costly, since they decide scores and completion:
   answered-but-unwatched both stay `in_progress`, the 95% threshold completes, an existing
   `completedAt` stays stable, percentages cap at 100, and an unknown duration reports 0%
   rather than a misleading number.
+- **`ProgressService.recalculateForVideo()`** — what happens to existing learners when an
+  admin edits a video: a position past a newly shortened end is pulled back inside it,
+  percentages are re-derived against the new duration, adding a question un-completes
+  whoever had finished the old set, deleting one can complete them, and every learner is
+  updated rather than only the first.
 
 The API was additionally verified end to end against a live database — auth, role
 enforcement on both directions, the answer-leak check, progress monotonicity, clamping,

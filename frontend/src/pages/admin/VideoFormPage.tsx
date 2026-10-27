@@ -111,7 +111,7 @@ export function VideoFormPage() {
               onChange={(e) => setVideoUrl(e.target.value)}
               placeholder="https://cdn.example.com/lesson.mp4"
               required
-              hint="A direct link to an MP4 file. The duration is read from it automatically."
+              hint="A direct link to an MP4 file."
             />
 
             <Input
