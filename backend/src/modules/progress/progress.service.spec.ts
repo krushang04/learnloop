@@ -1,0 +1,139 @@
+import { Test } from '@nestjs/testing';
+import { getModelToken } from '@nestjs/mongoose';
+import { ProgressStatus } from 'src/common/enums';
+import { QuestionsService } from 'src/modules/questions/questions.service';
+import { Response } from 'src/modules/responses/schemas/response.schema';
+import { VideosService } from 'src/modules/videos/videos.service';
+import { ProgressService } from './progress.service';
+import { Progress } from './schemas/progress.schema';
+
+/**
+ * recalculate() is the rule that decides whether a learner has finished a
+ * lesson, so it is tested directly against a plain progress object.
+ */
+describe('ProgressService.recalculate', () => {
+  let service: ProgressService;
+  let answeredCount = 0;
+  let totalQuestions = 0;
+
+  const makeProgress = (overrides: Partial<Progress> = {}): any => ({
+    videoId: { toString: () => 'video-1' },
+    learnerId: { toString: () => 'learner-1' },
+    lastPositionSeconds: 0,
+    maxPositionSeconds: 0,
+    completionPercentage: 0,
+    status: ProgressStatus.NOT_STARTED,
+    answeredQuestionCount: 0,
+    completedAt: null,
+    ...overrides,
+  });
+
+  beforeEach(async () => {
+    answeredCount = 0;
+    totalQuestions = 0;
+
+    const moduleRef = await Test.createTestingModule({
+      providers: [
+        ProgressService,
+        { provide: getModelToken(Progress.name), useValue: {} },
+        {
+          provide: getModelToken(Response.name),
+          useValue: { countDocuments: () => ({ exec: async () => answeredCount }) },
+        },
+        {
+          provide: QuestionsService,
+          useValue: { countActiveForVideo: async () => totalQuestions },
+        },
+        {
+          provide: VideosService,
+          useValue: { findByIdOrFail: async () => ({ durationSeconds: 100 }) },
+        },
+      ],
+    }).compile();
+
+    service = moduleRef.get(ProgressService);
+  });
+
+  it('reports 0% and not_started for an untouched video', async () => {
+    const progress = makeProgress();
+    await service.recalculate(progress, 100);
+
+    expect(progress.completionPercentage).toBe(0);
+    expect(progress.status).toBe(ProgressStatus.NOT_STARTED);
+  });
+
+  it('derives the percentage from the furthest point watched', async () => {
+    const progress = makeProgress({ maxPositionSeconds: 42 });
+    await service.recalculate(progress, 100);
+
+    expect(progress.completionPercentage).toBe(42);
+    expect(progress.status).toBe(ProgressStatus.IN_PROGRESS);
+  });
+
+  it('does not complete a video whose questions are unanswered', async () => {
+    totalQuestions = 3;
+    answeredCount = 1;
+
+    const progress = makeProgress({ maxPositionSeconds: 100 });
+    await service.recalculate(progress, 100);
+
+    expect(progress.completionPercentage).toBe(100);
+    expect(progress.status).toBe(ProgressStatus.IN_PROGRESS);
+    expect(progress.completedAt).toBeNull();
+  });
+
+  it('does not complete a video that was only partly watched', async () => {
+    totalQuestions = 2;
+    answeredCount = 2;
+
+    const progress = makeProgress({ maxPositionSeconds: 50 });
+    await service.recalculate(progress, 100);
+
+    expect(progress.status).toBe(ProgressStatus.IN_PROGRESS);
+  });
+
+  it('completes once the video is watched through and every question is answered', async () => {
+    totalQuestions = 2;
+    answeredCount = 2;
+
+    const progress = makeProgress({ maxPositionSeconds: 100 });
+    await service.recalculate(progress, 100);
+
+    expect(progress.status).toBe(ProgressStatus.COMPLETED);
+    expect(progress.completedAt).toBeInstanceOf(Date);
+  });
+
+  it('completes at the 95% threshold, not only at the literal final frame', async () => {
+    const progress = makeProgress({ maxPositionSeconds: 96 });
+    await service.recalculate(progress, 100);
+
+    expect(progress.status).toBe(ProgressStatus.COMPLETED);
+  });
+
+  it('keeps an existing completedAt stable when recalculated again', async () => {
+    const earlier = new Date('2026-01-01T00:00:00Z');
+    const progress = makeProgress({
+      maxPositionSeconds: 100,
+      status: ProgressStatus.COMPLETED,
+      completedAt: earlier,
+    });
+
+    await service.recalculate(progress, 100);
+    expect(progress.completedAt).toBe(earlier);
+  });
+
+  it('caps the percentage at 100 if a position somehow exceeds the duration', async () => {
+    const progress = makeProgress({ maxPositionSeconds: 250 });
+    await service.recalculate(progress, 100);
+
+    expect(progress.completionPercentage).toBe(100);
+  });
+
+  it('reports 0% rather than a misleading number when the duration is unknown', async () => {
+    const progress = makeProgress({ maxPositionSeconds: 30 });
+    await service.recalculate(progress, 0);
+
+    expect(progress.completionPercentage).toBe(0);
+    expect(progress.status).toBe(ProgressStatus.IN_PROGRESS);
+  });
+});

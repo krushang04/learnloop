@@ -1,0 +1,73 @@
+import {
+  BadRequestException,
+  Body,
+  Controller,
+  Delete,
+  Get,
+  HttpCode,
+  HttpStatus,
+  Inject,
+  Param,
+  Patch,
+  Post,
+  forwardRef,
+} from '@nestjs/common';
+import { ApiBearerAuth, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
+import { Roles } from 'src/common/decorators/roles.decorator';
+import { UserRole } from 'src/common/enums';
+import { ParseObjectIdPipe } from 'src/common/pipes/parse-object-id.pipe';
+import { VideosService } from 'src/modules/videos/videos.service';
+import { CreateQuestionDto } from './dto/create-question.dto';
+import { UpdateQuestionDto } from './dto/update-question.dto';
+import { QuestionsService } from './questions.service';
+
+@ApiTags('Questions (Admin)')
+@ApiBearerAuth()
+@Roles(UserRole.ADMIN)
+@Controller()
+export class QuestionsController {
+  constructor(
+    private readonly questionsService: QuestionsService,
+    @Inject(forwardRef(() => VideosService))
+    private readonly videosService: VideosService,
+  ) {}
+
+  @Get('videos/:videoId/questions')
+  @ApiOperation({ summary: 'List a video\'s questions in playback order (with correct answers)' })
+  async list(@Param('videoId', ParseObjectIdPipe) videoId: string) {
+    await this.videosService.findByIdOrFail(videoId);
+    return this.questionsService.findByVideoId(videoId, { includeAnswers: true });
+  }
+
+  @Post('videos/:videoId/questions')
+  @ApiOperation({ summary: 'Add a timestamp question to a video' })
+  @ApiResponse({ status: 400, description: 'Invalid shape for the chosen question type' })
+  @ApiResponse({ status: 409, description: 'Another question already fires at this second' })
+  async create(
+    @Param('videoId', ParseObjectIdPipe) videoId: string,
+    @Body() dto: CreateQuestionDto,
+  ) {
+    const video = await this.videosService.findByIdOrFail(videoId);
+
+    // A question past the end of the video would never fire.
+    if (video.durationSeconds && dto.timestampSeconds > video.durationSeconds) {
+      throw new BadRequestException(
+        `Timestamp ${dto.timestampSeconds}s is past the end of this video (${video.durationSeconds}s)`,
+      );
+    }
+    return this.questionsService.create(videoId, dto);
+  }
+
+  @Patch('questions/:id')
+  @ApiOperation({ summary: 'Update a question' })
+  update(@Param('id', ParseObjectIdPipe) id: string, @Body() dto: UpdateQuestionDto) {
+    return this.questionsService.update(id, dto);
+  }
+
+  @Delete('questions/:id')
+  @HttpCode(HttpStatus.NO_CONTENT)
+  @ApiOperation({ summary: 'Delete a question' })
+  async remove(@Param('id', ParseObjectIdPipe) id: string) {
+    await this.questionsService.remove(id);
+  }
+}

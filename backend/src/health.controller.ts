@@ -1,0 +1,25 @@
+import { Controller, Get } from '@nestjs/common';
+import { InjectConnection } from '@nestjs/mongoose';
+import { ApiOperation, ApiTags } from '@nestjs/swagger';
+import { Connection } from 'mongoose';
+import { Public } from './common/decorators/public.decorator';
+
+@ApiTags('Health')
+@Controller('health')
+export class HealthController {
+  constructor(@InjectConnection() private readonly connection: Connection) {}
+
+  @Public()
+  @Get()
+  @ApiOperation({ summary: 'Liveness probe — also reports the Mongo connection state' })
+  check() {
+    // 1 === connected, per Mongoose's readyState enum.
+    const dbConnected = this.connection.readyState === 1;
+    return {
+      status: dbConnected ? 'ok' : 'degraded',
+      database: dbConnected ? 'connected' : 'disconnected',
+      uptimeSeconds: Math.round(process.uptime()),
+      timestamp: new Date().toISOString(),
+    };
+  }
+}
