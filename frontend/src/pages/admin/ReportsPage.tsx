@@ -61,7 +61,7 @@ export function ReportsPage() {
                 <Th>Video</Th>
                 <Th>Status</Th>
                 <Th align="right">Questions</Th>
-                <Th align="right">Duration</Th>
+                <Th align="right">Length</Th>
                 <Th align="right">Created</Th>
                 <Th />
               </tr>

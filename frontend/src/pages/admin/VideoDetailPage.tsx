@@ -7,6 +7,7 @@ import {
   useUpdateVideoMutation,
 } from '@/features/videos/videosApi';
 import { useDeleteQuestionMutation } from '@/features/questions/questionsApi';
+import { useListAssignmentsQuery } from '@/features/assignments/assignmentsApi';
 import { useAppDispatch } from '@/app/hooks';
 import { toastShown } from '@/features/ui/toastSlice';
 import { PageHeader } from '@/layouts/AppLayout';
@@ -27,7 +28,7 @@ import {
 import { useVideoDuration } from '@/hooks/useVideoDuration';
 import { getErrorMessage } from '@/lib/baseQuery';
 import { formatDuration } from '@/lib/format';
-import type { Question } from '@/types';
+import { COMPLETION_THRESHOLD, type Question } from '@/types';
 import { QuestionForm } from './QuestionForm';
 import { AssignLearnersPanel } from './AssignLearnersPanel';
 
@@ -141,7 +142,9 @@ export function VideoDetailPage() {
           </div>
         </Card>
         <Card className="p-4">
-          <p className="text-xs font-medium uppercase tracking-wide text-slate-500">Duration</p>
+          <p className="text-xs font-medium uppercase tracking-wide text-slate-500">
+            Completion length
+          </p>
           <p className="mt-2 text-lg font-semibold tabular-nums text-slate-900">
             {video.durationSeconds ? formatDuration(video.durationSeconds) : 'Not set'}
           </p>
@@ -361,6 +364,27 @@ function VideoSettings({ video }: { video: { _id: string; title: string; descrip
 
   const probe = useVideoDuration(videoUrl);
 
+  const { data: assignments } = useListAssignmentsQuery(video._id);
+  const assignedCount = assignments?.length ?? 0;
+
+  /**
+   * Both directions of mismatch are a problem, in opposite ways:
+   *
+   * - shorter than the file: learners hit 100% with video still to play
+   * - longer than the file:  nobody can ever reach the 95% threshold, so the
+   *                          video becomes impossible to complete
+   *
+   * The second is the more severe and the easier to cause by accident, so it
+   * gets the stronger treatment. A one-second tolerance absorbs rounding.
+   */
+  const typed = Number(durationSeconds) || 0;
+  const realLength = probe.status === 'ready' ? (probe.seconds ?? 0) : 0;
+  const hasRealLength = realLength > 0 && typed > 0;
+  const isTooShort = hasRealLength && typed < realLength - 1;
+  const isTooLong = hasRealLength && typed > realLength + 1;
+  // Completion needs 95% of the stated length, which the file cannot supply.
+  const isUnreachable = isTooLong && realLength / typed < COMPLETION_THRESHOLD;
+
   // Only auto-fill a duration that is missing, or one belonging to a URL the
   // admin has just changed. Silently rewriting a correct saved value would be
   // surprising, and worse if the probe is the one that is wrong.
@@ -407,20 +431,84 @@ function VideoSettings({ video }: { video: { _id: string; title: string; descrip
           onChange={(e) => setThumbnailUrl(e.target.value)}
         />
         <Input
-          label="Duration (seconds)"
+          label="Completion length (seconds)"
           type="number"
           min={0}
           value={durationSeconds}
           onChange={(e) => setDurationSeconds(e.target.value)}
-          error={probe.status === 'error' ? probe.error ?? undefined : undefined}
+          error={probe.status === 'error' ? (probe.error ?? undefined) : undefined}
           hint={
             probe.status === 'probing'
               ? 'Reading the video…'
               : probe.status === 'ready'
-                ? `Video reports ${formatDuration(probe.seconds ?? 0)}. Required before publishing.`
-                : 'Required before the video can be published.'
+                ? `Learners must watch 95% of this. The video itself is ${formatDuration(
+                    probe.seconds ?? 0,
+                  )} long.`
+                : 'Learners must watch 95% of this to complete the video.'
           }
         />
+
+        {/* A mismatch with the real file is easy to cause and invisible once
+            saved, so it is called out before the save rather than after. */}
+        {isTooLong && (
+          <div
+            role="alert"
+            className={`rounded-lg px-3 py-2.5 text-sm ring-1 ring-inset ${
+              isUnreachable
+                ? 'bg-red-50 text-red-900 ring-red-200'
+                : 'bg-amber-50 text-amber-900 ring-amber-200'
+            }`}
+          >
+            <p className="font-medium">
+              {isUnreachable
+                ? 'No one can complete this video.'
+                : `This is longer than the video itself (${formatDuration(realLength)}).`}
+            </p>
+            <p className={`mt-1 ${isUnreachable ? 'text-red-800' : 'text-amber-800'}`}>
+              The file is only {formatDuration(realLength)} long, so watching all of it reaches{' '}
+              <strong className="font-semibold">
+                {Math.round((realLength / typed) * 100)}%
+              </strong>{' '}
+              of {formatDuration(typed)}
+              {isUnreachable && <> — short of the 95% needed to complete</>}.
+              {assignedCount > 0 && (
+                <>
+                  {' '}
+                  Affects{' '}
+                  <strong className="font-semibold">
+                    {assignedCount} assigned learner{assignedCount === 1 ? '' : 's'}
+                  </strong>
+                  .
+                </>
+              )}
+            </p>
+          </div>
+        )}
+
+        {isTooShort && (
+          <div
+            role="alert"
+            className="rounded-lg bg-amber-50 px-3 py-2.5 text-sm text-amber-900 ring-1 ring-inset ring-amber-200"
+          >
+            <p className="font-medium">
+              This is shorter than the video itself ({formatDuration(realLength)}).
+            </p>
+            <p className="mt-1 text-amber-800">
+              Learners will reach 100% after {formatDuration(typed)}, with{' '}
+              {formatDuration(realLength - typed)} still left to play.
+              {assignedCount > 0 && (
+                <>
+                  {' '}
+                  Saving recalculates progress for{' '}
+                  <strong className="font-semibold">
+                    {assignedCount} assigned learner{assignedCount === 1 ? '' : 's'}
+                  </strong>
+                  .
+                </>
+              )}
+            </p>
+          </div>
+        )}
         <div className="flex justify-end border-t border-slate-200 pt-4">
           <Button onClick={handleSave} isLoading={isLoading}>
             Save changes

@@ -233,3 +233,9 @@ export interface LearnerResponseReport {
     } | null;
   }[];
 }
+
+/**
+ * Share of the stated completion length a learner must watch before the video
+ * counts as watched. Mirrors COMPLETION_WATCH_THRESHOLD on the API.
+ */
+export const COMPLETION_THRESHOLD = 0.95;

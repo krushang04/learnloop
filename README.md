@@ -307,7 +307,7 @@ positions are stored:
 Completion percentage derives from `maxPositionSeconds`, so re-watching a section never
 reduces earned progress.
 
-**Duration is read from the file, not asked for.** Completion percentage is
+**Completion length is read from the file, not asked for.** Completion percentage is
 `maxWatched / duration`, so the denominator has to be right. Rather than trusting an admin
 to look the number up, the form loads the video's metadata (`preload="metadata"` — the
 header, not the whole file) the moment a URL is pasted. There is no duration input on the
@@ -321,12 +321,19 @@ skipping every question is not completing the lesson. The 95% threshold exists b
 videos rarely get watched to the literal final frame.
 
 **Editing a video re-derives everyone's progress.** Completion percentage is
-`maxWatched / duration` and completion status also depends on the question count, so
+`maxWatched / completionLength` and completion status also depends on the question count, so
 changing either silently invalidates every stored progress row. Changing a duration, or
 adding or deleting a question, recalculates all of that video's progress immediately —
 and clamps any saved position that now sits past the end. Without it the admin report
 keeps showing figures that were true under the old settings until each learner happens to
 open the video again, which is the one place those figures need to be trustworthy.
+
+**The field is named for what it does.** It is labelled *completion length*, not
+*duration*, because it is not merely a fact about the file: it is the number completion is
+measured against, and it is editable. Overriding it in either direction misleads silently,
+so the form compares it with the file's real length and says what will happen — a shorter
+value means learners hit 100% with video still to play, and a longer one means nobody can
+reach the 95% threshold at all, which makes the video impossible to complete.
 
 **Questions cannot be skipped.** When the playhead reaches a question the video pauses and
 the overlay has no dismiss control. Seeking forward past several questions surfaces the

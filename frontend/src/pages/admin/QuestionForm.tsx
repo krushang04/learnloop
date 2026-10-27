@@ -225,7 +225,7 @@ export function QuestionForm({
             hint={
               videoDuration
                 ? `Video is ${formatDuration(videoDuration)} long`
-                : 'Duration not set yet'
+                : 'Completion length not set yet'
             }
           />
 

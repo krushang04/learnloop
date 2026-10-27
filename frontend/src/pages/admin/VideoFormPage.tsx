@@ -122,7 +122,7 @@ export function VideoFormPage() {
               placeholder="https://cdn.example.com/lesson.jpg"
             />
 
-            {/* Duration is a property of the URL, so it reports itself here rather
+            {/* The completion length comes from the URL, so it reports itself here rather
                 than sitting as an empty box the admin has to wonder about. The
                 input only appears when detection cannot answer, or when someone
                 deliberately asks to set it by hand. */}
@@ -137,10 +137,11 @@ export function VideoFormPage() {
               <div className="flex flex-wrap items-center gap-2 rounded-lg bg-emerald-50 px-3 py-2.5 text-sm text-emerald-800 ring-1 ring-inset ring-emerald-200">
                 <CheckIcon width={16} height={16} />
                 <span>
-                  Duration detected:{' '}
+                  Completion length:{' '}
                   <strong className="font-semibold">
                     {formatDuration(Number(durationSeconds) || 0)}
-                  </strong>
+                  </strong>{' '}
+                  <span className="text-emerald-700">· detected from the video</span>
                 </span>
                 <button
                   type="button"
@@ -154,7 +155,7 @@ export function VideoFormPage() {
 
             {(probe.status === 'error' || isDurationManual) && (
               <Input
-                label="Duration (seconds)"
+                label="Completion length (seconds)"
                 type="number"
                 min={0}
                 value={durationSeconds}
@@ -168,7 +169,7 @@ export function VideoFormPage() {
                 hint={
                   probe.status === 'error'
                     ? undefined
-                    : 'Overriding the detected duration. Required before publishing.'
+                    : 'Learners must watch 95% of this to complete the video.'
                 }
               />
             )}
