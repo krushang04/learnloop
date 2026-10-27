@@ -184,7 +184,12 @@ export class VideosService {
     );
   }
 
-  /** Called by the learner player once the browser knows the real duration. */
+  /**
+   * Self-healing backstop: fills in a duration for a video that reached the
+   * database without one (the seed script, a migration, a direct edit). The
+   * normal path is the admin UI, which reads the duration from the file at
+   * creation time. Only ever writes when the stored value is still 0.
+   */
   async backfillDuration(id: string, durationSeconds: number): Promise<void> {
     if (!Number.isFinite(durationSeconds) || durationSeconds <= 0) return;
     await this.videoModel

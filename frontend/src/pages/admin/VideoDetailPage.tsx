@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import {
   useDeleteVideoMutation,
@@ -24,6 +24,7 @@ import {
   ReportIcon,
   TrashIcon,
 } from '@/components/Icons';
+import { useVideoDuration } from '@/hooks/useVideoDuration';
 import { getErrorMessage } from '@/lib/baseQuery';
 import { formatDuration } from '@/lib/format';
 import type { Question } from '@/types';
@@ -358,6 +359,19 @@ function VideoSettings({ video }: { video: { _id: string; title: string; descrip
   const [thumbnailUrl, setThumbnailUrl] = useState(video.thumbnailUrl);
   const [durationSeconds, setDurationSeconds] = useState(String(video.durationSeconds));
 
+  const probe = useVideoDuration(videoUrl);
+
+  // Only auto-fill a duration that is missing, or one belonging to a URL the
+  // admin has just changed. Silently rewriting a correct saved value would be
+  // surprising, and worse if the probe is the one that is wrong.
+  const urlChanged = videoUrl.trim() !== video.videoUrl;
+  useEffect(() => {
+    if (probe.status !== 'ready' || !probe.seconds) return;
+    if (!video.durationSeconds || urlChanged) {
+      setDurationSeconds(String(probe.seconds));
+    }
+  }, [probe.status, probe.seconds, urlChanged, video.durationSeconds]);
+
   const handleSave = async () => {
     try {
       await updateVideo({
@@ -398,7 +412,14 @@ function VideoSettings({ video }: { video: { _id: string; title: string; descrip
           min={0}
           value={durationSeconds}
           onChange={(e) => setDurationSeconds(e.target.value)}
-          hint="Required before the video can be published."
+          error={probe.status === 'error' ? probe.error ?? undefined : undefined}
+          hint={
+            probe.status === 'probing'
+              ? 'Reading the video…'
+              : probe.status === 'ready'
+                ? `Video reports ${formatDuration(probe.seconds ?? 0)}. Required before publishing.`
+                : 'Required before the video can be published.'
+          }
         />
         <div className="flex justify-end border-t border-slate-200 pt-4">
           <Button onClick={handleSave} isLoading={isLoading}>

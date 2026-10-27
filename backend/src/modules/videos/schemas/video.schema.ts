@@ -23,9 +23,10 @@ export class Video {
   videoUrl: string;
 
   /**
-   * Duration in seconds. Admins may supply it; otherwise the learner's player
-   * reports it on first load and we backfill. Completion % is meaningless
-   * without it, so everything downstream guards for 0.
+   * Duration in seconds. The admin UI reads it out of the video file and fills
+   * it in, and publishing is blocked until it is known, because completion
+   * percentage has no denominator without it. Still guarded for 0 downstream,
+   * since data can reach the database from the seed script too.
    */
   @Prop({ required: true, min: 0, default: 0 })
   durationSeconds: number;

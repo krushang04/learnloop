@@ -307,6 +307,12 @@ positions are stored:
 Completion percentage derives from `maxPositionSeconds`, so re-watching a section never
 reduces earned progress.
 
+**Duration is read from the file, not asked for.** Completion percentage is
+`maxWatched / duration`, so the denominator has to be right. Rather than trusting an admin
+to look the number up, the form loads the video's metadata (`preload="metadata"` — the
+header, not the whole file) the moment a URL is pasted and fills the field in. A manual
+edit wins over a later detection, and an unreachable URL falls back to typing it by hand.
+
 **Completion requires both watching and answering.** A video is `completed` only when the
 learner has watched ≥95% *and* answered every active question. Watching to the end while
 skipping every question is not completing the lesson. The 95% threshold exists because
@@ -373,9 +379,10 @@ every validation guard, and the full learner journey through to `completed`.
    race in the player, so the pairing is unique.
 5. **Short answers are matched exactly** after trimming and lower-casing, against a list of
    accepted variants the admin supplies. No fuzzy matching or stemming.
-6. **Duration may be backfilled.** An admin can create a video without a duration; the
-   first learner's browser reports it and the API fills it in. Publishing is blocked until
-   it is known.
+6. **Duration is detected, not typed.** Pasting a video URL into the admin form loads the
+   file's metadata in the browser and fills the duration in automatically; the field stays
+   editable for the rare source that reports nothing. Publishing is blocked until a
+   duration is known, because completion percentage has no denominator without one.
 7. **Learners see only published, assigned videos.** Unpublishing hides a video without
    destroying assignments or progress.
 

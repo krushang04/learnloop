@@ -1,4 +1,4 @@
-import { FormEvent, useState } from 'react';
+import { FormEvent, useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useCreateVideoMutation } from '@/features/videos/videosApi';
 import { useAppDispatch } from '@/app/hooks';
@@ -8,6 +8,8 @@ import { Button } from '@/components/ui/Button';
 import { Card, CardBody } from '@/components/ui/Card';
 import { Input, Textarea } from '@/components/ui/Input';
 import { ChevronLeftIcon } from '@/components/Icons';
+import { useVideoDuration } from '@/hooks/useVideoDuration';
+import { formatDuration } from '@/lib/format';
 import { getErrorMessage } from '@/lib/baseQuery';
 
 /**
@@ -22,10 +24,22 @@ export function VideoFormPage() {
   const [durationSeconds, setDurationSeconds] = useState('');
   const [tags, setTags] = useState('');
   const [formError, setFormError] = useState<string | null>(null);
+  // Set once the admin edits the duration by hand, so a later probe result
+  // cannot overwrite a deliberate override.
+  const [isDurationManual, setDurationManual] = useState(false);
 
   const [createVideo, { isLoading }] = useCreateVideoMutation();
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
+
+  // Reads the real length out of the file header as soon as a URL is pasted.
+  const probe = useVideoDuration(videoUrl);
+
+  useEffect(() => {
+    if (probe.status === 'ready' && probe.seconds && !isDurationManual) {
+      setDurationSeconds(String(probe.seconds));
+    }
+  }, [probe.status, probe.seconds, isDurationManual]);
 
   const handleSubmit = async (event: FormEvent) => {
     event.preventDefault();
@@ -96,7 +110,7 @@ export function VideoFormPage() {
               onChange={(e) => setVideoUrl(e.target.value)}
               placeholder="https://cdn.example.com/lesson.mp4"
               required
-              hint="A direct link to an MP4 file. The player needs CORS access to it."
+              hint="A direct link to an MP4 file. The duration is read from it automatically."
             />
 
             <Input
@@ -113,9 +127,19 @@ export function VideoFormPage() {
                 type="number"
                 min={0}
                 value={durationSeconds}
-                onChange={(e) => setDurationSeconds(e.target.value)}
-                placeholder="600"
-                hint="Optional — detected on first playback if left blank."
+                onChange={(e) => {
+                  setDurationManual(true);
+                  setDurationSeconds(e.target.value);
+                }}
+                placeholder="Detected from the video"
+                error={probe.status === 'error' ? probe.error ?? undefined : undefined}
+                hint={
+                  probe.status === 'probing'
+                    ? 'Reading the video…'
+                    : probe.status === 'ready' && !isDurationManual
+                      ? `Detected automatically (${formatDuration(Number(durationSeconds) || 0)}). Edit to override.`
+                      : 'Filled in from the video URL. Required before publishing.'
+                }
               />
 
               <Input
