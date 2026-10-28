@@ -5,10 +5,14 @@ specific timestamps, assign them to learners, and track how far each learner got
 how they answered. Learners watch, answer questions that interrupt playback, and
 resume exactly where they left off.
 
+**[Watch the walkthrough](https://www.youtube.com/watch?v=TlSdz5UV9YM)** - admin flow,
+learner flow, architecture and data model.
+
 ---
 
 ## Contents
 
+- [Walkthrough](#walkthrough)
 - [Quick start](#quick-start)
 - [Sample login credentials](#sample-login-credentials)
 - [Environment variables](#environment-variables)
@@ -21,6 +25,15 @@ resume exactly where they left off.
 - [Testing](#testing)
 - [Assumptions](#assumptions)
 - [Known limitations](#known-limitations)
+
+---
+
+## Walkthrough
+
+[LearnLoop - Video Learning + Interactive Quiz Builder (Walkthrough)](https://www.youtube.com/watch?v=TlSdz5UV9YM)
+
+Covers creating a video with timestamp questions, the learner experience including
+resume-after-refresh, admin reporting, and the architecture and data model decisions.
 
 ---
 
