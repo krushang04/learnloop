@@ -27,7 +27,7 @@ export function useProgressAutosave(
 
   // Refs rather than state: these change constantly and must not re-render.
   const lastSavedRef = useRef<number>(-1);
-  const inFlightRef = useRef(false);
+  const inFlightRef = useRef<Promise<void> | null>(null);
   const durationRef = useRef<number | undefined>(undefined);
 
   // Held in a ref so a new callback identity each render does not rebuild the
@@ -43,34 +43,46 @@ export function useProgressAutosave(
 
   const flush = useCallback(
     async (options: { force?: boolean } = {}) => {
+      // A forced flush waits for any save already running rather than giving
+      // up. Callers await it to guarantee the server knows where they are —
+      // the answer endpoint refuses questions past the saved position, so
+      // dropping this write would refuse a legitimate answer.
+      if (inFlightRef.current) {
+        if (!options.force) return;
+        await inFlightRef.current;
+      }
+
       const position = getPosition();
       if (position === null || !Number.isFinite(position)) return;
 
       // Skip no-op writes: without this, a paused video would save the same
       // second every five seconds forever.
-      const movedEnough = Math.abs(position - lastSavedRef.current) >= 1;
-      if (!options.force && !movedEnough) return;
-      if (inFlightRef.current) return;
+      if (!options.force && Math.abs(position - lastSavedRef.current) < 1) return;
 
-      inFlightRef.current = true;
-      dispatch(saveStateChanged('saving'));
+      const request = (async () => {
+        dispatch(saveStateChanged('saving'));
+        try {
+          const saved = await saveProgress({
+            videoId,
+            positionSeconds: Math.floor(position),
+            durationSeconds: durationRef.current,
+          }).unwrap();
 
+          lastSavedRef.current = position;
+          onSavedRef.current?.(saved);
+          dispatch(saveStateChanged('saved'));
+        } catch {
+          // Autosave failing is not worth interrupting playback over; the
+          // indicator shows it and the next tick will try again.
+          dispatch(saveStateChanged('error'));
+        }
+      })();
+
+      inFlightRef.current = request;
       try {
-        const saved = await saveProgress({
-          videoId,
-          positionSeconds: Math.floor(position),
-          durationSeconds: durationRef.current,
-        }).unwrap();
-
-        lastSavedRef.current = position;
-        onSavedRef.current?.(saved);
-        dispatch(saveStateChanged('saved'));
-      } catch {
-        // Autosave failing is not worth interrupting playback over; the
-        // indicator shows it and the next tick will try again.
-        dispatch(saveStateChanged('error'));
+        await request;
       } finally {
-        inFlightRef.current = false;
+        if (inFlightRef.current === request) inFlightRef.current = null;
       }
     },
     [videoId, getPosition, saveProgress, dispatch],

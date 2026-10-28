@@ -132,6 +132,10 @@ export function VideoPlayerPage() {
     setAnswerError(null);
 
     try {
+      // The server refuses answers for questions past the saved position, so
+      // the position has to land before the answer does.
+      await flush({ force: true });
+
       const response = await submitAnswer({
         videoId,
         questionId: activeQuestion.id,

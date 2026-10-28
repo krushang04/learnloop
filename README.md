@@ -367,7 +367,7 @@ picks up where they left off.
 
 ```bash
 cd backend
-npm test              # 29 unit tests
+npm test              # 37 unit tests
 npm run test:cov      # with coverage
 ```
 
@@ -387,6 +387,9 @@ costly, since they decide scores and completion:
   percentages are re-derived against the new duration, adding a question un-completes
   whoever had finished the old set, deleting one can complete them, and every learner is
   updated rather than only the first.
+- **`ResponsesService.submit()`** — the playback gate: answers are accepted at or behind
+  the furthest point watched and within the whole-second margin, refused beyond it with
+  nothing written, and the existing guards (wrong video, inactive question) still hold.
 
 The API was additionally verified end to end against a live database — auth, role
 enforcement on both directions, the answer-leak check, progress monotonicity, clamping,
@@ -415,6 +418,10 @@ every validation guard, and the full learner journey through to `completed`.
    duration is known, because completion percentage has no denominator without one.
 7. **Learners see only published, assigned videos.** Unpublishing hides a video without
    destroying assignments or progress.
+8. **Questions unlock by playback position.** A learner may only answer a question at or
+   behind the furthest point they have played to, enforced by the API rather than only by
+   the paused player. The saved position is written in whole seconds, so answers are
+   accepted within a two-second margin of the question's timestamp.
 
 ## Known limitations
 
@@ -433,10 +440,17 @@ every validation guard, and the full learner journey through to `completed`.
    side would mean the API range-requesting every video file on write, which is a lot of
    network dependency and failure surface for a mistake the UI already prevents. The
    consequence is a stuck video, not corrupted or unsafe data.
-5. **Transactions need a replica set.** The delete cascade falls back to sequential deletes
+5. **Watch position is self-reported.** The answer endpoint refuses questions the learner
+   has not reached, which keeps the stored data consistent and blocks answering a video
+   without playing it. But the position it checks against arrives from the client, so a
+   caller who first POSTs a position at the end of the video can then answer everything.
+   Verifying genuine playback would mean streaming the media through the API and tracking
+   delivered byte ranges per learner — a different architecture, and one the brief does not
+   call for. The guarantee offered here is ordering and consistency, not proof of viewing.
+6. **Transactions need a replica set.** The delete cascade falls back to sequential deletes
    on a standalone mongod, ordered children-first so an interrupted delete leaves the video
    reachable rather than orphaning rows.
-6. **Reports are computed per request.** Fine at this scale; a large deployment would want
+7. **Reports are computed per request.** Fine at this scale; a large deployment would want
    pre-aggregated rollups rather than recomputing a per-learner table on every load.
 7. **The learner assignment list filters in memory.** The result set is scoped to one
    learner's assignments, so an extra round trip would cost more than the in-memory pass.

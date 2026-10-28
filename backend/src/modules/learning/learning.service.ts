@@ -143,7 +143,17 @@ export class LearningService {
     await this.assignmentsService.assertAssigned(videoId, learnerId);
     await this.videosService.assertPublished(videoId);
 
-    const result = await this.responsesService.submit(videoId, questionId, learnerId, dto);
+    // The furthest point this learner has actually played to. Passing it down
+    // lets the grader refuse questions they have not reached yet.
+    const current = await this.progressService.getOrCreate(videoId, learnerId);
+
+    const result = await this.responsesService.submit(
+      videoId,
+      questionId,
+      learnerId,
+      dto,
+      current.maxPositionSeconds,
+    );
     const progress = await this.progressService.refreshAfterAnswer(videoId, learnerId);
 
     // Returned together so the UI can show the verdict and the updated

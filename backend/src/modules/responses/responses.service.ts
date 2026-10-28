@@ -1,6 +1,7 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
+import { BadRequestException, ForbiddenException, Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model, Types } from 'mongoose';
+import { ANSWER_POSITION_GRACE_SECONDS } from 'src/common/enums';
 import { SubmitAnswerDto } from 'src/modules/questions/dto/submit-answer.dto';
 import { QuestionsService } from 'src/modules/questions/questions.service';
 import { Response, ResponseDocument } from './schemas/response.schema';
@@ -25,12 +26,17 @@ export class ResponsesService {
    * Grades and stores an answer. Upserts on (learner, question) so a re-answer
    * replaces the previous one and increments `attempts`, which keeps reporting
    * a direct lookup rather than a "latest of many" aggregation.
+   *
+   * `reachedSeconds` is the learner's furthest watched point. Answers for
+   * questions beyond it are refused, so the stored responses can never describe
+   * a learner who answered something they had not yet played past.
    */
   async submit(
     videoId: string,
     questionId: string,
     learnerId: string,
     dto: SubmitAnswerDto,
+    reachedSeconds: number,
   ): Promise<GradedAnswer> {
     const question = await this.questionsService.findByIdOrFail(questionId);
 
@@ -40,6 +46,14 @@ export class ResponsesService {
     }
     if (!question.isActive) {
       throw new BadRequestException('This question is no longer active');
+    }
+    // The client pauses the video on a question, but nothing stops a caller
+    // from POSTing straight to this route. Checking against the furthest point
+    // the learner has actually reached keeps the answers in playback order.
+    if (question.timestampSeconds > reachedSeconds + ANSWER_POSITION_GRACE_SECONDS) {
+      throw new ForbiddenException(
+        'You have not reached this question yet — keep watching to unlock it',
+      );
     }
 
     const { isCorrect, pointsAwarded } = this.questionsService.grade(question, dto);
