@@ -13,12 +13,10 @@
     "rootDir": "./src",
     "paths": { "src/*": ["./src/*"] },
     "incremental": true,
-    // Lives inside the output dir on purpose: nest-cli deletes dist on every
-    // start, and a build cache that outlives the files it describes makes the
-    // compiler skip an emit it still owes, leaving no dist/main to run.
     "tsBuildInfoFile": "./dist/tsconfig.tsbuildinfo",
     "skipLibCheck": true,
     "strictNullChecks": true,
+    "strictPropertyInitialization": false,
     "forceConsistentCasingInFileNames": true,
     "noImplicitAny": false,
     "strictBindCallApply": false,
