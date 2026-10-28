@@ -319,7 +319,7 @@ export function VideoPlayerPage() {
             <CardBody className="p-0">
               {!questions.length ? (
                 <p className="px-5 py-4 text-sm text-slate-500">
-                  This video has no questions — just watch it through.
+                  This video has no questions - just watch it through.
                 </p>
               ) : (
                 <ul className="divide-y divide-slate-100">

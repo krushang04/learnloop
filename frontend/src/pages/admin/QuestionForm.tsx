@@ -247,8 +247,8 @@ export function QuestionForm({
                 Options
                 <span className="ml-2 font-normal text-slate-500">
                   {type === 'single_choice'
-                    ? '— select the one correct answer'
-                    : '— select every correct answer'}
+                    ? '- select the one correct answer'
+                    : '- select every correct answer'}
                 </span>
               </label>
               <Button

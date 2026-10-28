@@ -22,7 +22,7 @@ const makeQuestion = (overrides: Record<string, unknown> = {}): any => ({
   ...overrides,
 });
 
-describe('ResponsesService.submit() — playback position gate', () => {
+describe('ResponsesService.submit() - playback position gate', () => {
   let service: ResponsesService;
   let questionsService: { findByIdOrFail: jest.Mock; grade: jest.Mock };
   let responseModel: { findOneAndUpdate: jest.Mock };

@@ -1,11 +1,9 @@
-# LearnLoop — Video Learning + Interactive Quiz Builder
+# LearnLoop - Video Learning + Interactive Quiz Builder
 
 A mini learning platform where admins publish video lessons with questions pinned to
 specific timestamps, assign them to learners, and track how far each learner got and
 how they answered. Learners watch, answer questions that interrupt playback, and
 resume exactly where they left off.
-
-Built for the SDE II full-stack assessment.
 
 ---
 
@@ -48,7 +46,7 @@ npm install
 npm run dev
 ```
 
-Open **http://localhost:5173** and sign in with one of the accounts below — the login
+Open **http://localhost:5173** and sign in with one of the accounts below - the login
 screen has one-click buttons for the admin and learner demo accounts.
 
 ### Everything in Docker
@@ -71,10 +69,10 @@ cd backend && MONGODB_URI=mongodb://localhost:27017/learnloop npm run seed
 | Role | Email | Password | Notes |
 |---|---|---|---|
 | Admin | `admin@learnloop.dev` | `Admin@123` | Full library, assignment and reporting access |
-| Learner | `asha@learnloop.dev` | `Learner@123` | Has one completed video — good for seeing reports |
+| Learner | `asha@learnloop.dev` | `Learner@123` | Has one completed video - good for seeing reports |
 | Learner | `rahul@learnloop.dev` | `Learner@123` | Mid-video, one question answered incorrectly |
 | Learner | `priya@learnloop.dev` | `Learner@123` | Just started a second video |
-| Learner | `daniel@learnloop.dev` | `Learner@123` | Untouched — shows the empty "not started" state |
+| Learner | `daniel@learnloop.dev` | `Learner@123` | Untouched - shows the empty "not started" state |
 
 New signups through the UI are always created as learners. Admin accounts come only
 from the seed script, so the registration form cannot be used to escalate a role.
@@ -182,7 +180,7 @@ Error (`meta` is present only on paginated lists):
 |---|---|---|---|
 | `POST` | `/auth/login` | public | Issue a JWT |
 | `POST` | `/auth/register` | public | Sign up (always a learner) |
-| `GET` | `/auth/me` | any | Current user — rehydrates the session on refresh |
+| `GET` | `/auth/me` | any | Current user - rehydrates the session on refresh |
 | `GET` | `/health` | public | Liveness plus Mongo connection state |
 | `GET` | `/videos` | admin | List with `?search=&status=&tag=&page=&limit=` |
 | `POST` | `/videos` | admin | Create |
@@ -232,16 +230,16 @@ others into the handful of endpoints the learner app actually needs.
 
 Every request passes through the same pipeline:
 
-1. **`JwtAuthGuard`** — registered globally, so routes are authenticated *by default*.
+1. **`JwtAuthGuard`** - registered globally, so routes are authenticated *by default*.
    A forgotten decorator cannot silently expose an endpoint; opting out is explicit via
    `@Public()`. The strategy re-reads the user on every request rather than trusting the
    token body, so a deactivated account loses access immediately.
-2. **`RolesGuard`** — enforces `@Roles(UserRole.ADMIN | LEARNER)`.
-3. **`ValidationPipe`** — `whitelist` + `forbidNonWhitelisted`, so an unknown field is a
+2. **`RolesGuard`** - enforces `@Roles(UserRole.ADMIN | LEARNER)`.
+3. **`ValidationPipe`** - `whitelist` + `forbidNonWhitelisted`, so an unknown field is a
    loud 400 rather than silently dropped.
-4. **Service layer** — all business rules; controllers stay thin.
-5. **`TransformInterceptor`** — wraps every success in the envelope above.
-6. **`AllExceptionsFilter`** — one exit point for errors, translating Mongoose
+4. **Service layer** - all business rules; controllers stay thin.
+5. **`TransformInterceptor`** - wraps every success in the envelope above.
+6. **`AllExceptionsFilter`** - one exit point for errors, translating Mongoose
    `ValidationError`/`CastError` and Mongo duplicate-key (11000) into proper HTTP codes
    so a duplicate never surfaces as a 500.
 
@@ -262,7 +260,7 @@ Every request passes through the same pipeline:
 
 Six collections. Questions are modelled separately from videos rather than embedded,
 because they are edited independently, queried on their own, and referenced by
-`Response.questionId` — embedding would make a response point into an array position.
+`Response.questionId` - embedding would make a response point into an array position.
 
 ```
 User ──────┬──< Video (createdBy)
@@ -294,22 +292,22 @@ answer row per learner per question.
 **Correct answers never reach the browser.** `GET /me/assignments/:videoId` strips
 `correctOptionKeys`, `acceptedAnswers` and `explanation` before responding. Grading
 happens in `QuestionsService.grade()` on the server, and the explanation is returned
-only in the answer response — after the learner has committed. Shipping the answers to
+only in the answer response - after the learner has committed. Shipping the answers to
 the client and checking there would put the key in the network tab.
 
 **Progress is derived, not asserted by the client.** The client reports a position; the
 server clamps it to the video duration and recomputes everything else. Two separate
 positions are stored:
 
-- `lastPositionSeconds` — where to drop the playhead on resume; moves backwards on rewind.
-- `maxPositionSeconds` — the furthest point ever reached; **only ever increases**.
+- `lastPositionSeconds` - where to drop the playhead on resume; moves backwards on rewind.
+- `maxPositionSeconds` - the furthest point ever reached; **only ever increases**.
 
 Completion percentage derives from `maxPositionSeconds`, so re-watching a section never
 reduces earned progress.
 
 **Completion length is read from the file, not asked for.** Completion percentage is
 `maxWatched / duration`, so the denominator has to be right. Rather than trusting an admin
-to look the number up, the form loads the video's metadata (`preload="metadata"` — the
+to look the number up, the form loads the video's metadata (`preload="metadata"` - the
 header, not the whole file) the moment a URL is pasted. There is no duration input on the
 form by default: it reports what it found, and only offers a field when detection cannot
 answer or the admin explicitly asks to set it by hand. An empty box captioned "detected
@@ -323,7 +321,7 @@ videos rarely get watched to the literal final frame.
 **Editing a video re-derives everyone's progress.** Completion percentage is
 `maxWatched / completionLength` and completion status also depends on the question count, so
 changing either silently invalidates every stored progress row. Changing a duration, or
-adding or deleting a question, recalculates all of that video's progress immediately —
+adding or deleting a question, recalculates all of that video's progress immediately -
 and clamps any saved position that now sits past the end. Without it the admin report
 keeps showing figures that were true under the old settings until each learner happens to
 open the video again, which is the one place those figures need to be trustworthy.
@@ -341,7 +339,7 @@ treats the two directions differently, because only one of them is a legitimate 
   ever complete it. Saving is blocked rather than warned about.
 
 The check lives in the browser because that is the only place the file's true length is
-known — see the limitation below.
+known - see the limitation below.
 
 **Questions cannot be skipped.** When the playhead reaches a question the video pauses and
 the overlay has no dismiss control. Seeking forward past several questions surfaces the
@@ -374,24 +372,24 @@ npm run test:cov      # with coverage
 Coverage focuses on the two pieces of pure logic where a bug would be both likely and
 costly, since they decide scores and completion:
 
-- **`QuestionsService.grade()`** — all three question types, including exact-set matching
+- **`QuestionsService.grade()`** - all three question types, including exact-set matching
   for multiple choice (partial and superset selections both fail), case/whitespace
   insensitivity for short answers, and rejection of unknown option keys. Also asserts
   `toLearnerShape()` strips the answers.
-- **`ProgressService.recalculate()`** — the completion rule: watched-but-unanswered and
+- **`ProgressService.recalculate()`** - the completion rule: watched-but-unanswered and
   answered-but-unwatched both stay `in_progress`, the 95% threshold completes, an existing
   `completedAt` stays stable, percentages cap at 100, and an unknown duration reports 0%
   rather than a misleading number.
-- **`ProgressService.recalculateForVideo()`** — what happens to existing learners when an
+- **`ProgressService.recalculateForVideo()`** - what happens to existing learners when an
   admin edits a video: a position past a newly shortened end is pulled back inside it,
   percentages are re-derived against the new duration, adding a question un-completes
   whoever had finished the old set, deleting one can complete them, and every learner is
   updated rather than only the first.
-- **`ResponsesService.submit()`** — the playback gate: answers are accepted at or behind
+- **`ResponsesService.submit()`** - the playback gate: answers are accepted at or behind
   the furthest point watched and within the whole-second margin, refused beyond it with
   nothing written, and the existing guards (wrong video, inactive question) still hold.
 
-The API was additionally verified end to end against a live database — auth, role
+The API was additionally verified end to end against a live database - auth, role
 enforcement on both directions, the answer-leak check, progress monotonicity, clamping,
 every validation guard, and the full learner journey through to `completed`.
 
@@ -445,7 +443,7 @@ every validation guard, and the full learner journey through to `completed`.
    without playing it. But the position it checks against arrives from the client, so a
    caller who first POSTs a position at the end of the video can then answer everything.
    Verifying genuine playback would mean streaming the media through the API and tracking
-   delivered byte ranges per learner — a different architecture, and one the brief does not
+   delivered byte ranges per learner - a different architecture, and one the brief does not
    call for. The guarantee offered here is ordering and consistency, not proof of viewing.
 6. **Transactions need a replica set.** The delete cascade falls back to sequential deletes
    on a standalone mongod, ordered children-first so an interrupted delete leaves the video

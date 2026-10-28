@@ -1,6 +1,6 @@
 /**
  * Mirrors the backend config so both halves of the repo are held to the same
- * standard, plus the rules of hooks — the one class of React bug that type
+ * standard, plus the rules of hooks - the one class of React bug that type
  * checking cannot catch.
  */
 module.exports = {

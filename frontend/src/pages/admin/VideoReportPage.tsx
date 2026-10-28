@@ -116,7 +116,7 @@ export function VideoReportPage() {
                   </Td>
                   <Td align="right" className="tabular-nums">
                     {row.accuracy === null ? (
-                      <span className="text-slate-400">—</span>
+                      <span className="text-slate-400">-</span>
                     ) : (
                       <span
                         className={

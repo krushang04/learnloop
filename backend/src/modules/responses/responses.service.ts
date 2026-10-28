@@ -40,7 +40,7 @@ export class ResponsesService {
 
     if (question.timestampSeconds > reachedSeconds + ANSWER_POSITION_GRACE_SECONDS) {
       throw new ForbiddenException(
-        'You have not reached this question yet — keep watching to unlock it',
+        'You have not reached this question yet - keep watching to unlock it',
       );
     }
 

@@ -103,7 +103,7 @@ const SAMPLE_VIDEOS = [
         ],
         correctOptionKeys: ['b'],
         points: 2,
-        explanation: 'The consignee is the receiving party — the shipper is the one sending.',
+        explanation: 'The consignee is the receiving party - the shipper is the one sending.',
       },
       {
         timestampSeconds: 14,
@@ -159,7 +159,7 @@ const SAMPLE_VIDEOS = [
   {
     title: 'Advanced Tariff Engineering (Draft)',
     description:
-      'Still being written — kept unpublished so you can see how a draft behaves: invisible to learners until published.',
+      'Still being written - kept unpublished so you can see how a draft behaves: invisible to learners until published.',
     videoUrl: 'https://test-videos.co.uk/vids/bigbuckbunny/mp4/h264/360/Big_Buck_Bunny_360_10s_1MB.mp4',
     thumbnailUrl: 'https://picsum.photos/seed/tariff/640/360',
     durationSeconds: 10,

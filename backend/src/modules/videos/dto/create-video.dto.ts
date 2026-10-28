@@ -42,7 +42,7 @@ export class CreateVideoDto {
   @ApiPropertyOptional({
     example: 596,
     description:
-      'Total length in seconds. Optional on the wire — the admin UI reads it from the video file and fills it in — but required before the video can be published.',
+      'Total length in seconds. Optional on the wire - the admin UI reads it from the video file and fills it in - but required before the video can be published.',
   })
   @IsOptional()
   @Type(() => Number)

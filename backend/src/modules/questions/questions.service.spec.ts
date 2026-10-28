@@ -36,7 +36,7 @@ describe('QuestionsService', () => {
     service = moduleRef.get(QuestionsService);
   });
 
-  describe('grade() — single choice', () => {
+  describe('grade() - single choice', () => {
     it('awards the question points for the correct option', () => {
       const result = service.grade(makeQuestion(), { selectedOptionKeys: ['a'] });
       expect(result).toEqual({ isCorrect: true, pointsAwarded: 2 });
@@ -66,7 +66,7 @@ describe('QuestionsService', () => {
     });
   });
 
-  describe('grade() — multiple choice', () => {
+  describe('grade() - multiple choice', () => {
     const multi = makeQuestion({
       type: QuestionType.MULTIPLE_CHOICE,
       correctOptionKeys: ['a', 'b'],
@@ -93,7 +93,7 @@ describe('QuestionsService', () => {
     });
   });
 
-  describe('grade() — short answer', () => {
+  describe('grade() - short answer', () => {
     const short = makeQuestion({
       type: QuestionType.SHORT_ANSWER,
       options: [],

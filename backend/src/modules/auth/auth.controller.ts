@@ -38,7 +38,7 @@ export class AuthController {
 
   @Get('me')
   @ApiBearerAuth()
-  @ApiOperation({ summary: 'Current authenticated user — used to rehydrate the session on refresh' })
+  @ApiOperation({ summary: 'Current authenticated user - used to rehydrate the session on refresh' })
   @ApiResponse({ status: 200, description: 'The signed-in user, without the password hash' })
   @ApiResponse({ status: 401, description: 'Missing, malformed or expired access token' })
   me(@CurrentUser() user: AuthUser) {

@@ -194,7 +194,7 @@ export class QuestionsService {
     }
     if (type === QuestionType.MULTIPLE_CHOICE && correctKeys.length < 2) {
       throw new BadRequestException(
-        'A multiple-choice question must have at least two correct options — use single choice otherwise',
+        'A multiple-choice question must have at least two correct options - use single choice otherwise',
       );
     }
   }

@@ -11,7 +11,7 @@ export class HealthController {
 
   @Public()
   @Get()
-  @ApiOperation({ summary: 'Liveness probe — also reports the Mongo connection state' })
+  @ApiOperation({ summary: 'Liveness probe - also reports the Mongo connection state' })
   @ApiResponse({
     status: 200,
     description:

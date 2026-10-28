@@ -455,7 +455,7 @@ function VideoSettings({ video }: { video: { _id: string; title: string; descrip
                 {Math.round((realLength / typed) * 100)}%
               </strong>{' '}
               of {formatDuration(typed)}
-              {isUnreachable && <> — short of the 95% needed to complete</>}.
+              {isUnreachable && <> - short of the 95% needed to complete</>}.
               {assignedCount > 0 && (
                 <>
                   {' '}

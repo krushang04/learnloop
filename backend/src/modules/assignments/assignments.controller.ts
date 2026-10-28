@@ -19,7 +19,7 @@ export class AssignmentsController {
   @Post()
   @ApiOperation({
     summary: 'Assign a video to learners',
-    description: 'Idempotent — learners who already have it are reported, not duplicated.',
+    description: 'Idempotent - learners who already have it are reported, not duplicated.',
   })
   @ApiResponse({
     status: 201,

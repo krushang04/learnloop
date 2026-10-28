@@ -134,7 +134,7 @@ export class VideosService {
     if (status === VideoStatus.PUBLISHED) {
       if (!video.durationSeconds) {
         throw new BadRequestException(
-          'Set the video duration before publishing — completion tracking depends on it.',
+          'Set the video duration before publishing - completion tracking depends on it.',
         );
       }
       const invalid = await this.questionsService.findInvalidForPublish(id);

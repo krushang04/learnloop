@@ -103,7 +103,7 @@ export function LearnerResponseModal({
                         <dt className="w-24 shrink-0 text-slate-500">Their answer</dt>
                         <dd className="font-medium text-slate-800">
                           {!response ? (
-                            <span className="italic text-slate-400">—</span>
+                            <span className="italic text-slate-400">-</span>
                           ) : question.type === 'short_answer' ? (
                             `"${response.answerText}"`
                           ) : (
