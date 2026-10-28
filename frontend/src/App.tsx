@@ -50,7 +50,11 @@ function RootRedirect() {
 
 export default function App() {
   return (
-    <BrowserRouter>
+    <BrowserRouter
+      // Opt in to the v7 behaviours now, so the console stays clean and the
+      // upgrade is a version bump rather than a behaviour change.
+      future={{ v7_startTransition: true, v7_relativeSplatPath: true }}
+    >
       <SessionGate>
         <Routes>
           <Route path="/login" element={<LoginPage />} />
