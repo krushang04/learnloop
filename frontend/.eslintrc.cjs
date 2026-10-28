@@ -5,7 +5,15 @@
  */
 module.exports = {
   parser: '@typescript-eslint/parser',
-  parserOptions: { project: 'tsconfig.json', sourceType: 'module', ecmaVersion: 'latest' },
+  parserOptions: {
+    project: 'tsconfig.json',
+    // Resolve the project relative to THIS file. Without it, an editor whose
+    // workspace root is the repo (not this folder) looks for the tsconfig one
+    // level up and reports a parsing error on every file.
+    tsconfigRootDir: __dirname,
+    sourceType: 'module',
+    ecmaVersion: 'latest',
+  },
   plugins: ['@typescript-eslint', 'react-hooks'],
   extends: [
     'eslint:recommended',

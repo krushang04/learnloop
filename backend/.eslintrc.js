@@ -1,6 +1,12 @@
 module.exports = {
   parser: '@typescript-eslint/parser',
-  parserOptions: { project: 'tsconfig.json', sourceType: 'module' },
+  parserOptions: {
+    project: 'tsconfig.json',
+    // Resolve the project relative to THIS file, so an editor rooted at the
+    // repo rather than this folder still finds the tsconfig.
+    tsconfigRootDir: __dirname,
+    sourceType: 'module',
+  },
   plugins: ['@typescript-eslint'],
   extends: ['plugin:@typescript-eslint/recommended'],
   root: true,
