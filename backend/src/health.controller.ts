@@ -1,6 +1,6 @@
 import { Controller, Get } from '@nestjs/common';
 import { InjectConnection } from '@nestjs/mongoose';
-import { ApiOperation, ApiTags } from '@nestjs/swagger';
+import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { Connection } from 'mongoose';
 import { Public } from './common/decorators/public.decorator';
 
@@ -12,6 +12,11 @@ export class HealthController {
   @Public()
   @Get()
   @ApiOperation({ summary: 'Liveness probe — also reports the Mongo connection state' })
+  @ApiResponse({
+    status: 200,
+    description:
+      'Always 200 while the process is up. `status` is `degraded` when Mongo is unreachable.',
+  })
   check() {
     // 1 === connected, per Mongoose's readyState enum.
     const dbConnected = this.connection.readyState === 1;

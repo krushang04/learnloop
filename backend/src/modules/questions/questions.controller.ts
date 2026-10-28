@@ -13,6 +13,11 @@ import {
   forwardRef,
 } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
+import {
+  ApiAuthErrors,
+  ApiNotFound,
+  ApiValidationError,
+} from 'src/common/decorators/api-responses.decorator';
 import { Roles } from 'src/common/decorators/roles.decorator';
 import { UserRole } from 'src/common/enums';
 import { ParseObjectIdPipe } from 'src/common/pipes/parse-object-id.pipe';
@@ -25,6 +30,7 @@ import { QuestionsService } from './questions.service';
 @ApiTags('Questions (Admin)')
 @ApiBearerAuth()
 @Roles(UserRole.ADMIN)
+@ApiAuthErrors()
 @Controller()
 export class QuestionsController {
   constructor(
@@ -37,6 +43,8 @@ export class QuestionsController {
 
   @Get('videos/:videoId/questions')
   @ApiOperation({ summary: 'List a video\'s questions in playback order (with correct answers)' })
+  @ApiResponse({ status: 200, description: 'Questions ordered by timestamp' })
+  @ApiNotFound('video')
   async list(@Param('videoId', ParseObjectIdPipe) videoId: string) {
     await this.videosService.findByIdOrFail(videoId);
     return this.questionsService.findByVideoId(videoId, { includeAnswers: true });
@@ -45,7 +53,9 @@ export class QuestionsController {
   @Post('videos/:videoId/questions')
   @ApiOperation({ summary: 'Add a timestamp question to a video' })
   @ApiResponse({ status: 400, description: 'Invalid shape for the chosen question type' })
+  @ApiResponse({ status: 201, description: 'Created. Affected learners are moved back out of completed.' })
   @ApiResponse({ status: 409, description: 'Another question already fires at this second' })
+  @ApiNotFound('video')
   async create(
     @Param('videoId', ParseObjectIdPipe) videoId: string,
     @Body() dto: CreateQuestionDto,
@@ -68,13 +78,23 @@ export class QuestionsController {
 
   @Patch('questions/:id')
   @ApiOperation({ summary: 'Update a question' })
+  @ApiResponse({ status: 200, description: 'The updated question' })
+  @ApiResponse({ status: 400, description: 'Invalid shape for the chosen question type' })
+  @ApiResponse({ status: 409, description: 'Another question already fires at this second' })
+  @ApiNotFound('question')
+  @ApiValidationError()
   update(@Param('id', ParseObjectIdPipe) id: string, @Body() dto: UpdateQuestionDto) {
     return this.questionsService.update(id, dto);
   }
 
   @Delete('questions/:id')
   @HttpCode(HttpStatus.NO_CONTENT)
-  @ApiOperation({ summary: 'Delete a question' })
+  @ApiOperation({
+    summary: 'Delete a question',
+    description: 'Also removes every learner response to it, and re-derives their progress.',
+  })
+  @ApiResponse({ status: 204, description: 'Deleted, along with its responses' })
+  @ApiNotFound('question')
   async remove(@Param('id', ParseObjectIdPipe) id: string) {
     const videoId = await this.questionsService.remove(id);
     // One fewer question to answer can be what tips a learner into completed.
