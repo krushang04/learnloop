@@ -15,11 +15,6 @@ export class AssignmentsService {
     private readonly videosService: VideosService,
   ) {}
 
-  /**
-   * Bulk-assign. Idempotent: re-assigning someone who already has the video is
-   * a no-op rather than an error, so an admin can safely add one learner to an
-   * existing cohort by re-submitting the whole list.
-   */
   async assign(videoId: string, dto: CreateAssignmentDto, adminId: string) {
     await this.videosService.findByIdOrFail(videoId);
     const learnerIds = await this.usersService.assertLearnersExist(dto.learnerIds);
@@ -70,12 +65,8 @@ export class AssignmentsService {
     if (!result.deletedCount) {
       throw new NotFoundException('This learner is not assigned to this video');
     }
-    // Progress and responses are intentionally kept: if the learner is
-    // re-assigned later, their history is still there, and the admin report
-    // for past attempts stays intact.
   }
 
-  /** Access check used by every learner-facing route. */
   async assertAssigned(videoId: string, learnerId: string): Promise<AssignmentDocument> {
     const assignment = await this.assignmentModel
       .findOne({
@@ -104,8 +95,7 @@ export class AssignmentsService {
       .find({ learnerId: new Types.ObjectId(learnerId) })
       .populate({
         path: 'videoId',
-        // A video pulled back into draft disappears from the learner's list
-        // without losing the assignment record.
+
         match: { status: VideoStatus.PUBLISHED },
       })
       .sort({ createdAt: -1 })

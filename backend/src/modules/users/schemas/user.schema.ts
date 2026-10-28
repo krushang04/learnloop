@@ -23,7 +23,6 @@ export class User {
   @Prop({ required: true, unique: true, lowercase: true, trim: true, index: true })
   email: string;
 
-  /** bcrypt hash. `select: false` keeps it out of every query that does not ask for it. */
   @Prop({ required: true, select: false })
   password: string;
 
@@ -39,5 +38,4 @@ export class User {
 
 export const UserSchema = SchemaFactory.createForClass(User);
 
-// Supports the admin "search learners by name or email" box.
 UserSchema.index({ name: 'text', email: 'text' });

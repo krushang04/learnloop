@@ -4,8 +4,6 @@ import { ProgressStatus } from 'src/common/enums';
 
 export type ProgressDocument = HydratedDocument<Progress>;
 
-/** One row per (learner, video). Created lazily when a learner first opens a
- *  video, then upserted by playback autosave. */
 @Schema({ timestamps: true, collection: 'progress', toJSON: { virtuals: true } })
 export class Progress {
   @Prop({ type: Types.ObjectId, ref: 'Video', required: true, index: true })
@@ -14,14 +12,9 @@ export class Progress {
   @Prop({ type: Types.ObjectId, ref: 'User', required: true, index: true })
   learnerId: Types.ObjectId;
 
-  /** Where to drop the playhead on resume. Moves backwards when a learner seeks back. */
   @Prop({ default: 0, min: 0 })
   lastPositionSeconds: number;
 
-  /**
-   * Furthest point ever reached. Only ever moves forward, which is what makes
-   * completion % monotonic — rewinding must not undo earned progress.
-   */
   @Prop({ default: 0, min: 0 })
   maxPositionSeconds: number;
 
@@ -50,5 +43,5 @@ export class Progress {
 export const ProgressSchema = SchemaFactory.createForClass(Progress);
 
 ProgressSchema.index({ videoId: 1, learnerId: 1 }, { unique: true });
-// Admin report: every learner's progress on one video.
+
 ProgressSchema.index({ videoId: 1, status: 1 });

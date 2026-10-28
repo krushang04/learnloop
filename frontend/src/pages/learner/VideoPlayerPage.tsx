@@ -24,7 +24,6 @@ import { getErrorMessage } from '@/lib/baseQuery';
 import { formatDuration } from '@/lib/format';
 import type { Progress } from '@/types';
 
-/** Resuming within this margin of the end would replay only the credits. */
 const RESUME_END_MARGIN_SECONDS = 3;
 
 export function VideoPlayerPage() {
@@ -52,8 +51,6 @@ export function VideoPlayerPage() {
   const getPosition = useCallback(() => videoRef.current?.currentTime ?? null, []);
   const { flush, setDuration } = useProgressAutosave(videoId, getPosition, setLiveProgress);
 
-  // Seed the player with answers already on record, so a refresh mid-video does
-  // not re-ask questions the learner has answered.
   useEffect(() => {
     if (!data) return;
     dispatch(playerInitialised(data.answers.map((answer) => answer.questionId)));
@@ -64,7 +61,6 @@ export function VideoPlayerPage() {
     };
   }, [data, dispatch]);
 
-  // On leaving, refresh the assignment list so its progress bars are current.
   useEffect(() => {
     return () => {
       dispatch(learningApi.util.invalidateTags(['MyAssignment']));
@@ -73,11 +69,6 @@ export function VideoPlayerPage() {
 
   const activeQuestion = questions.find((question) => question.id === activeQuestionId) ?? null;
 
-  /**
-   * Finds the earliest unanswered question the playhead has reached. Checking
-   * the earliest (not the nearest) means seeking forward past several questions
-   * still surfaces them in order rather than letting them be skipped.
-   */
   const findDueQuestion = useCallback(
     (time: number) =>
       questions.find(
@@ -98,8 +89,7 @@ export function VideoPlayerPage() {
     if (!due) return;
 
     video.pause();
-    // If the learner seeked well past the question, bring them back to it so
-    // the question is answered in the context it belongs to.
+
     if (video.currentTime - due.timestampSeconds > 1) {
       video.currentTime = due.timestampSeconds;
     }
@@ -115,8 +105,6 @@ export function VideoPlayerPage() {
 
     setDuration(video.duration);
 
-    // Restore the saved playhead. Starting over at the end would be useless,
-    // so a finished video restarts from the beginning.
     const resumeAt = data?.progress.lastPositionSeconds ?? 0;
     if (resumeAt > 0 && resumeAt < video.duration - RESUME_END_MARGIN_SECONDS) {
       video.currentTime = resumeAt;
@@ -132,8 +120,6 @@ export function VideoPlayerPage() {
     setAnswerError(null);
 
     try {
-      // The server refuses answers for questions past the saved position, so
-      // the position has to land before the answer does.
       await flush({ force: true });
 
       const response = await submitAnswer({
@@ -219,7 +205,6 @@ export function VideoPlayerPage() {
             )}
           </div>
 
-          {/* Markers show where questions sit on the timeline. */}
           {questions.length > 0 && data.video.durationSeconds > 0 && (
             <div className="relative mt-3 h-6">
               <div className="absolute inset-x-0 top-2.5 h-1 rounded-full bg-slate-200" />
@@ -358,8 +343,7 @@ export function VideoPlayerPage() {
                           {isAnswered ? '✓' : index + 1}
                         </span>
                         <span className="flex-1 text-xs text-slate-600">
-                          {/* The prompt stays hidden until it fires, so the
-                              sidebar cannot be used to read ahead. */}
+
                           {isAnswered || isActive ? question.prompt : 'Question locked'}
                         </span>
                         <span className="shrink-0 text-xs tabular-nums text-slate-400">

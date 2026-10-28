@@ -20,7 +20,6 @@ export class ReportsService {
     private readonly responsesService: ResponsesService,
   ) {}
 
-  /** Top-of-dashboard counters. */
   async overview() {
     const [totalVideos, publishedVideos, totalLearners, totalAssignments, statusCounts] =
       await Promise.all([
@@ -45,14 +44,12 @@ export class ReportsService {
       totalAssignments,
       completed,
       inProgress,
-      // Assignments never opened have no progress row at all, so they are the
-      // remainder rather than a stored count.
+
       notStarted: Math.max(totalAssignments - completed - inProgress, 0),
       completionRate: totalAssignments ? Math.round((completed / totalAssignments) * 100) : 0,
     };
   }
 
-  /** Per-learner progress table for one video. */
   async videoReport(videoId: string) {
     const video = await this.videoModel.findById(videoId).lean().exec();
     if (!video) throw new NotFoundException('Video not found');
@@ -72,7 +69,7 @@ export class ReportsService {
     const scoreByLearner = new Map(scores.map((s) => [s._id.toString(), s]));
 
     const rows = assignments
-      // An assignment whose learner was deleted would otherwise crash the table.
+
       .filter((a: any) => a.learnerId)
       .map((assignment: any) => {
         const learnerId = assignment.learnerId._id.toString();
@@ -123,7 +120,6 @@ export class ReportsService {
     };
   }
 
-  /** One learner's full answer sheet for one video, question by question. */
   async learnerResponses(videoId: string, learnerId: string) {
     const [video, learner] = await Promise.all([
       this.videoModel.findById(videoId).lean().exec(),

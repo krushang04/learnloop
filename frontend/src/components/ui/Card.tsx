@@ -38,7 +38,6 @@ export function CardBody({ children, className }: { children: ReactNode; classNa
   return <div className={clsx('p-5', className)}>{children}</div>;
 }
 
-/** Headline number used across the admin dashboard. */
 export function StatCard({
   label,
   value,

@@ -5,10 +5,6 @@ import { EmptyState, ErrorState, LoadingState } from '@/components/ui/States';
 import { getErrorMessage } from '@/lib/baseQuery';
 import { formatDateTime, formatDuration } from '@/lib/format';
 
-/**
- * A learner's full answer sheet for one video: every question, what they
- * submitted, and the correct answer beside it.
- */
 export function LearnerResponseModal({
   videoId,
   learnerId,

@@ -34,7 +34,7 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(function Button
   return (
     <button
       ref={ref}
-      // A loading button stays disabled so a double click cannot fire twice.
+
       disabled={disabled || isLoading}
       className={clsx(
         'inline-flex items-center justify-center rounded-lg font-medium transition-colors',

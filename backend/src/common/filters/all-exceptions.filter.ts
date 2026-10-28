@@ -13,16 +13,12 @@ interface ErrorBody {
   success: false;
   statusCode: number;
   message: string;
-  /** Field-level detail for validation failures: { email: ['must be an email'] } */
+
   errors?: Record<string, string[]>;
   path: string;
   timestamp: string;
 }
 
-/**
- * Single exit point for every error. Translates Mongoose and Mongo driver
- * errors into proper HTTP codes so a duplicate key never surfaces as a 500.
- */
 @Catch()
 export class AllExceptionsFilter implements ExceptionFilter {
   private readonly logger = new Logger(AllExceptionsFilter.name);
@@ -68,8 +64,6 @@ export class AllExceptionsFilter implements ExceptionFilter {
         : 'Duplicate record';
     }
 
-    // 5xx means we did something wrong: keep the stack. 4xx is the client's
-    // problem and would only add noise at error level.
     if (statusCode >= HttpStatus.INTERNAL_SERVER_ERROR) {
       this.logger.error(
         `${request.method} ${request.url} -> ${statusCode}`,

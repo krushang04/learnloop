@@ -2,8 +2,6 @@ import { ApiPropertyOptional } from '@nestjs/swagger';
 import { Transform } from 'class-transformer';
 import { IsArray, IsOptional, IsString, MaxLength } from 'class-validator';
 
-/** A learner's answer. Which field is used depends on the question's type;
- *  the service validates the pairing and rejects mismatches. */
 export class SubmitAnswerDto {
   @ApiPropertyOptional({ type: [String], example: ['a'], description: 'For choice questions' })
   @IsOptional()

@@ -70,7 +70,6 @@ export function VideoDetailPage() {
         ),
       );
     } catch (err) {
-      // Publishing is blocked when the data is incomplete — surface exactly why.
       dispatch(toastShown(getErrorMessage(err, 'Could not change the status.'), 'error'));
     }
   };
@@ -351,7 +350,6 @@ export function VideoDetailPage() {
   );
 }
 
-/** Inline editor for the video's own fields. */
 function VideoSettings({ video }: { video: { _id: string; title: string; description: string; videoUrl: string; thumbnailUrl: string; durationSeconds: number } }) {
   const dispatch = useAppDispatch();
   const [updateVideo, { isLoading }] = useUpdateVideoMutation();
@@ -367,27 +365,14 @@ function VideoSettings({ video }: { video: { _id: string; title: string; descrip
   const { data: assignments } = useListAssignmentsQuery(video._id);
   const assignedCount = assignments?.length ?? 0;
 
-  /**
-   * Both directions of mismatch are a problem, in opposite ways:
-   *
-   * - shorter than the file: learners hit 100% with video still to play
-   * - longer than the file:  nobody can ever reach the 95% threshold, so the
-   *                          video becomes impossible to complete
-   *
-   * The second is the more severe and the easier to cause by accident, so it
-   * gets the stronger treatment. A one-second tolerance absorbs rounding.
-   */
   const typed = Number(durationSeconds) || 0;
   const realLength = probe.status === 'ready' ? (probe.seconds ?? 0) : 0;
   const hasRealLength = realLength > 0 && typed > 0;
   const isTooShort = hasRealLength && typed < realLength - 1;
   const isTooLong = hasRealLength && typed > realLength + 1;
-  // Completion needs 95% of the stated length, which the file cannot supply.
+
   const isUnreachable = isTooLong && realLength / typed < COMPLETION_THRESHOLD;
 
-  // Only auto-fill a duration that is missing, or one belonging to a URL the
-  // admin has just changed. Silently rewriting a correct saved value would be
-  // surprising, and worse if the probe is the one that is wrong.
   const urlChanged = videoUrl.trim() !== video.videoUrl;
   useEffect(() => {
     if (probe.status !== 'ready' || !probe.seconds) return;
@@ -397,8 +382,6 @@ function VideoSettings({ video }: { video: { _id: string; title: string; descrip
   }, [probe.status, probe.seconds, urlChanged, video.durationSeconds]);
 
   const handleSave = async () => {
-    // Nothing legitimate produces this state, so it is refused rather than
-    // warned about: you cannot require 54 seconds of a 20-second video.
     if (isUnreachable) return;
 
     try {
@@ -452,8 +435,6 @@ function VideoSettings({ video }: { video: { _id: string; title: string; descrip
           }
         />
 
-        {/* A mismatch with the real file is easy to cause and invisible once
-            saved, so it is called out before the save rather than after. */}
         {isTooLong && (
           <div
             role="alert"

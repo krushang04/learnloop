@@ -62,7 +62,6 @@ export class QuestionsController {
   ) {
     const video = await this.videosService.findByIdOrFail(videoId);
 
-    // A question past the end of the video would never fire.
     if (video.durationSeconds && dto.timestampSeconds > video.durationSeconds) {
       throw new BadRequestException(
         `Timestamp ${dto.timestampSeconds}s is past the end of this video (${video.durationSeconds}s)`,
@@ -70,8 +69,6 @@ export class QuestionsController {
     }
     const created = await this.questionsService.create(videoId, dto);
 
-    // Completing a video requires answering every question, so a new one means
-    // learners who had finished the old set are no longer finished.
     await this.progressService.recalculateForVideo(videoId);
     return created;
   }
@@ -97,7 +94,7 @@ export class QuestionsController {
   @ApiNotFound('question')
   async remove(@Param('id', ParseObjectIdPipe) id: string) {
     const videoId = await this.questionsService.remove(id);
-    // One fewer question to answer can be what tips a learner into completed.
+
     await this.progressService.recalculateForVideo(videoId.toString());
   }
 }

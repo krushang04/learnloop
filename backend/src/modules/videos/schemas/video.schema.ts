@@ -22,12 +22,6 @@ export class Video {
   @Prop({ required: true, trim: true })
   videoUrl: string;
 
-  /**
-   * Duration in seconds. The admin UI reads it out of the video file and fills
-   * it in, and publishing is blocked until it is known, because completion
-   * percentage has no denominator without it. Still guarded for 0 downstream,
-   * since data can reach the database from the seed script too.
-   */
   @Prop({ required: true, min: 0, default: 0 })
   durationSeconds: number;
 
@@ -46,9 +40,8 @@ export class Video {
 
 export const VideoSchema = SchemaFactory.createForClass(Video);
 
-// Admin library list: filter by status, newest first.
 VideoSchema.index({ status: 1, createdAt: -1 });
-// Admin search box.
+
 VideoSchema.index({ title: 'text', description: 'text' });
 
 VideoSchema.virtual('questionCount', {

@@ -10,11 +10,6 @@ import { UpdateProgressDto } from 'src/modules/progress/dto/update-progress.dto'
 import { VideosService } from 'src/modules/videos/videos.service';
 import { LearnerQueryDto } from './dto/learner-query.dto';
 
-/**
- * Everything the learner-facing app needs, composed in one place. Each read
- * starts from the assignment, so "is this learner allowed to see this video?"
- * is answered by the same query that fetches it.
- */
 @Injectable()
 export class LearningService {
   constructor(
@@ -28,8 +23,6 @@ export class LearningService {
   async listAssignedVideos(learnerId: string, query: LearnerQueryDto) {
     const assignments = await this.assignmentsService.findForLearner(learnerId);
 
-    // populate(match) leaves videoId null for videos that are no longer
-    // published — drop those rather than showing a broken card.
     const visible = assignments.filter((a) => a.videoId && typeof a.videoId === 'object');
 
     const videoIds = visible.map((a: any) => a.videoId._id);
@@ -59,9 +52,6 @@ export class LearningService {
       };
     });
 
-    // Filtering happens here rather than in Mongo because the list is scoped to
-    // one learner's assignments — small enough that an extra round trip costs
-    // more than an in-memory pass.
     if (query.search) {
       const rx = new RegExp(escapeRegex(query.search), 'i');
       items = items.filter((i) => rx.test(i.video.title) || rx.test(i.video.description));
@@ -81,11 +71,6 @@ export class LearningService {
     };
   }
 
-  /**
-   * The full player payload. Questions come back without their correct answers
-   * — grading is server-side, so shipping them would let anyone read the key
-   * out of the network tab.
-   */
   async getPlayerPayload(videoId: string, learnerId: string) {
     await this.assignmentsService.assertAssigned(videoId, learnerId);
     const video = await this.videosService.assertPublished(videoId);
@@ -109,7 +94,7 @@ export class LearningService {
       },
       questions,
       progress: this.progressService.toPublicShape(progress),
-      // Lets the player skip questions already answered before a refresh.
+
       answers: responses.map((r) => ({
         questionId: r.questionId.toString(),
         selectedOptionKeys: r.selectedOptionKeys,
@@ -143,8 +128,6 @@ export class LearningService {
     await this.assignmentsService.assertAssigned(videoId, learnerId);
     await this.videosService.assertPublished(videoId);
 
-    // The furthest point this learner has actually played to. Passing it down
-    // lets the grader refuse questions they have not reached yet.
     const current = await this.progressService.getOrCreate(videoId, learnerId);
 
     const result = await this.responsesService.submit(
@@ -156,8 +139,6 @@ export class LearningService {
     );
     const progress = await this.progressService.refreshAfterAnswer(videoId, learnerId);
 
-    // Returned together so the UI can show the verdict and the updated
-    // progress bar from a single round trip.
     return { result, progress: this.progressService.toPublicShape(progress) };
   }
 }

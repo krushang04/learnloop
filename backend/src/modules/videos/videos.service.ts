@@ -72,7 +72,6 @@ export class VideosService {
       this.videoModel.countDocuments(filter).exec(),
     ]);
 
-    // One grouped count instead of N queries while rendering the library list.
     const counts = await this.questionsService.countByVideoIds(items.map((v) => v._id));
 
     return {
@@ -102,8 +101,6 @@ export class VideosService {
   async update(id: string, dto: UpdateVideoDto): Promise<VideoDocument> {
     const video = await this.findByIdOrFail(id);
 
-    // Shortening a video can strand questions past the new end, where they
-    // would never fire. Block it and tell the admin exactly what is in the way.
     if (dto.durationSeconds !== undefined && dto.durationSeconds < video.durationSeconds) {
       const stranded = await this.questionsService.findBeyondTimestamp(id, dto.durationSeconds);
       if (stranded.length) {
@@ -119,9 +116,6 @@ export class VideosService {
     Object.assign(video, dto);
     const saved = await video.save();
 
-    // Completion percentage is watched/duration, so changing the duration
-    // invalidates every learner's stored figure. Re-derive them now rather than
-    // leaving the admin report showing numbers from the old setting.
     if (durationChanged) {
       const affected = await this.progressService.recalculateForVideo(video._id.toString());
       if (affected) {
@@ -138,8 +132,6 @@ export class VideosService {
     const video = await this.findByIdOrFail(id);
 
     if (status === VideoStatus.PUBLISHED) {
-      // Publishing is what makes a video visible to learners, so the data has
-      // to be complete enough to actually play and score.
       if (!video.durationSeconds) {
         throw new BadRequestException(
           'Set the video duration before publishing — completion tracking depends on it.',
@@ -157,16 +149,6 @@ export class VideosService {
     return video.save();
   }
 
-  /**
-   * Deletes a video and everything that hangs off it. Without the cascade, the
-   * questions, assignments, progress rows and responses would become orphans
-   * that still show up in reporting joins.
-   *
-   * Runs in a transaction when the deployment supports one (replica set). A
-   * standalone mongod — the default for local Docker — cannot do transactions,
-   * so we fall back to sequential deletes, ordered children-first so a failure
-   * part-way leaves the video reachable rather than orphaning its children.
-   */
   async remove(id: string): Promise<void> {
     const video = await this.findByIdOrFail(id);
     const videoId = video._id;
@@ -204,12 +186,6 @@ export class VideosService {
     );
   }
 
-  /**
-   * Self-healing backstop: fills in a duration for a video that reached the
-   * database without one (the seed script, a migration, a direct edit). The
-   * normal path is the admin UI, which reads the duration from the file at
-   * creation time. Only ever writes when the stored value is still 0.
-   */
   async backfillDuration(id: string, durationSeconds: number): Promise<void> {
     if (!Number.isFinite(durationSeconds) || durationSeconds <= 0) return;
     await this.videoModel

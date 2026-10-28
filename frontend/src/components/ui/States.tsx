@@ -2,11 +2,6 @@ import { ReactNode } from 'react';
 import { Button } from './Button';
 import { Spinner } from './Spinner';
 
-/**
- * The three states every data-backed screen needs. Centralised so "loading",
- * "failed" and "nothing here yet" look and read the same everywhere.
- */
-
 export function LoadingState({ label = 'Loading…' }: { label?: string }) {
   return (
     <div className="flex flex-col items-center justify-center gap-3 py-16 text-slate-400">
@@ -70,7 +65,6 @@ export function EmptyState({
   );
 }
 
-/** Grey placeholder used while cards and tables load, to avoid layout jump. */
 export function Skeleton({ className = '' }: { className?: string }) {
   return <div className={`animate-pulse rounded bg-slate-200 ${className}`} />;
 }

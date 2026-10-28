@@ -13,11 +13,6 @@ export interface NavItem {
   end?: boolean;
 }
 
-/**
- * Shared shell for both roles: fixed sidebar on desktop, slide-over drawer on
- * mobile. Keeping one layout means the admin and learner apps cannot drift
- * apart visually.
- */
 export function AppLayout({
   navItems,
   roleLabel,
@@ -34,7 +29,7 @@ export function AppLayout({
 
   const handleLogout = () => {
     dispatch(loggedOut());
-    // Drop every cached query so the next user cannot see the previous one's data.
+
     dispatch(api.util.resetApiState());
     navigate('/login', { replace: true });
   };
@@ -103,12 +98,11 @@ export function AppLayout({
 
   return (
     <div className="min-h-screen bg-slate-50">
-      {/* Desktop sidebar */}
+
       <aside className="fixed inset-y-0 left-0 hidden w-64 border-r border-slate-200 bg-white lg:block">
         {sidebar}
       </aside>
 
-      {/* Mobile drawer */}
       {isDrawerOpen && (
         <div className="fixed inset-0 z-40 lg:hidden">
           <div
@@ -121,7 +115,7 @@ export function AppLayout({
       )}
 
       <div className="lg:pl-64">
-        {/* Mobile top bar */}
+
         <header className="sticky top-0 z-30 flex h-14 items-center gap-3 border-b border-slate-200 bg-white/90 px-4 backdrop-blur lg:hidden">
           <button
             onClick={() => setDrawerOpen((open) => !open)}
@@ -141,7 +135,6 @@ export function AppLayout({
   );
 }
 
-/** Consistent page heading used by every screen. */
 export function PageHeader({
   title,
   description,

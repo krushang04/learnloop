@@ -25,11 +25,6 @@ const emptyOptions = (): DraftOption[] => [
   { key: 'b', text: '', isCorrect: false },
 ];
 
-/**
- * Create/edit form for a timestamp question. Correctness is captured inline on
- * each option, which avoids a second "which one is right?" control that can
- * fall out of sync with the option list.
- */
 export function QuestionForm({
   isOpen,
   onClose,
@@ -58,8 +53,6 @@ export function QuestionForm({
   const [updateQuestion, updateState] = useUpdateQuestionMutation();
   const isSaving = createState.isLoading || updateState.isLoading;
 
-  // Reset the form whenever the dialog opens, so an edit never leaks into the
-  // next "add question" and vice versa.
   useEffect(() => {
     if (!isOpen) return;
 
@@ -93,7 +86,6 @@ export function QuestionForm({
 
   const isChoice = type !== 'short_answer';
 
-  /** Single choice allows exactly one correct option, so picking one clears the rest. */
   const toggleCorrect = (key: string) => {
     setOptions((current) =>
       current.map((option) => {
@@ -120,7 +112,6 @@ export function QuestionForm({
     );
   };
 
-  /** Mirrors the API's per-type rules so the user sees the problem before a round trip. */
   const validate = (): string | null => {
     const seconds = Number(timestamp);
     if (!Number.isFinite(seconds) || seconds < 0) return 'Enter a valid timestamp.';

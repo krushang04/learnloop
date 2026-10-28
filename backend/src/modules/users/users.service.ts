@@ -31,7 +31,6 @@ export class UsersService {
     });
   }
 
-  /** Includes the normally-hidden password hash; for login only. */
   async findByEmailWithPassword(email: string): Promise<UserDocument | null> {
     return this.userModel.findOne({ email: email.toLowerCase().trim() }).select('+password').exec();
   }
@@ -46,7 +45,6 @@ export class UsersService {
     return user;
   }
 
-  /** Validates that every id exists and is a learner — used before assigning videos. */
   async assertLearnersExist(ids: string[]): Promise<Types.ObjectId[]> {
     const unique = [...new Set(ids)];
     const learners = await this.userModel

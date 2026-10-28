@@ -148,7 +148,6 @@ export function MyVideosPage() {
                       <ProgressBadge status={progress.status} />
                     </div>
 
-                    {/* A thin bar on the thumbnail shows resume position at a glance. */}
                     {isStarted && (
                       <div className="absolute inset-x-0 bottom-0 h-1 bg-white/30">
                         <div

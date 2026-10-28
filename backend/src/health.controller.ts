@@ -18,7 +18,6 @@ export class HealthController {
       'Always 200 while the process is up. `status` is `degraded` when Mongo is unreachable.',
   })
   check() {
-    // 1 === connected, per Mongoose's readyState enum.
     const dbConnected = this.connection.readyState === 1;
     return {
       status: dbConnected ? 'ok' : 'degraded',

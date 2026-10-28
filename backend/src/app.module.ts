@@ -34,8 +34,7 @@ import { VideosModule } from './modules/videos/videos.module';
         uri: config.get<string>('mongodbUri'),
       }),
     }),
-    // A blunt backstop against credential stuffing on /auth/login and against
-    // a runaway autosave loop in the player.
+
     ThrottlerModule.forRoot([{ ttl: 60_000, limit: 300 }]),
     AuthModule,
     UsersModule,
@@ -49,7 +48,7 @@ import { VideosModule } from './modules/videos/videos.module';
   ],
   controllers: [HealthController],
   providers: [
-    // Order matters: authenticate, then check the role, then rate-limit.
+
     { provide: APP_GUARD, useClass: JwtAuthGuard },
     { provide: APP_GUARD, useClass: RolesGuard },
     { provide: APP_GUARD, useClass: ThrottlerGuard },

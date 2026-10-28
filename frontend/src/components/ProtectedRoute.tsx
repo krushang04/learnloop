@@ -3,16 +3,10 @@ import { useAppSelector } from '@/app/hooks';
 import { LoadingState } from '@/components/ui/States';
 import type { UserRole } from '@/types';
 
-/**
- * Route-level authorization. Note this is a UX guard, not a security boundary —
- * the API enforces the same rules on every request.
- */
 export function ProtectedRoute({ allow }: { allow: UserRole }) {
   const { token, user, isRestoring } = useAppSelector((state) => state.auth);
   const location = useLocation();
 
-  // Wait for the stored session to be verified before deciding, otherwise a
-  // refresh on a deep link bounces the user to /login for a moment.
   if (isRestoring) {
     return (
       <div className="flex min-h-screen items-center justify-center">
@@ -22,7 +16,6 @@ export function ProtectedRoute({ allow }: { allow: UserRole }) {
   }
 
   if (!token || !user) {
-    // Remember where they were headed so login can send them back.
     return <Navigate to="/login" replace state={{ from: location.pathname }} />;
   }
 

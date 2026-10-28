@@ -12,7 +12,6 @@ import { ReportIcon } from '@/components/Icons';
 import { getErrorMessage } from '@/lib/baseQuery';
 import { formatDate, formatDuration } from '@/lib/format';
 
-/** Picks a video to drill into. The per-learner detail lives on VideoReportPage. */
 export function ReportsPage() {
   const [search, setSearch] = useState('');
   const debouncedSearch = useDebounced(search);

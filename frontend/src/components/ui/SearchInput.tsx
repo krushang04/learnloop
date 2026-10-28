@@ -1,6 +1,5 @@
 import { SearchIcon, CloseIcon } from '@/components/Icons';
 
-/** Search box with an inline clear button, shared by every list screen. */
 export function SearchInput({
   value,
   onChange,

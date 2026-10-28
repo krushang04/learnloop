@@ -41,7 +41,6 @@ function LearnerShell({ children }: { children: React.ReactNode }) {
   );
 }
 
-/** Sends a signed-in user to their own home, and everyone else to login. */
 function RootRedirect() {
   const { token, user } = useAppSelector((state) => state.auth);
   if (!token || !user) return <Navigate to="/login" replace />;
@@ -51,8 +50,7 @@ function RootRedirect() {
 export default function App() {
   return (
     <BrowserRouter
-      // Opt in to the v7 behaviours now, so the console stays clean and the
-      // upgrade is a version bump rather than a behaviour change.
+
       future={{ v7_startTransition: true, v7_relativeSplatPath: true }}
     >
       <SessionGate>

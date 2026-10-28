@@ -24,11 +24,6 @@ export const learningApi = api.injectEndpoints({
       providesTags: (_r, _e, videoId) => [{ type: 'MyAssignment', id: videoId }],
     }),
 
-    /**
-     * Playback autosave. Deliberately does NOT invalidate the player payload —
-     * refetching it mid-playback would remount the <video> element and lose the
-     * playhead. The list is refreshed when the learner navigates away instead.
-     */
     saveProgress: builder.mutation<
       Progress,
       { videoId: string; positionSeconds: number; durationSeconds?: number }

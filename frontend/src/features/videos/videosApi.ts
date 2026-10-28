@@ -22,7 +22,6 @@ export const videosApi = api.injectEndpoints({
   endpoints: (builder) => ({
     listVideos: builder.query<{ items: Video[]; meta: PaginationMeta }, VideoListParams>({
       query: (params) => {
-        // Empty strings would become `?status=` and fail the enum validator.
         const clean = Object.fromEntries(
           Object.entries(params).filter(([, v]) => v !== '' && v !== undefined && v !== null),
         );

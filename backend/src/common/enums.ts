@@ -1,6 +1,3 @@
-/** Application-wide enums. Kept in one place so the API, the schemas and the
- *  seed script can never drift apart on a string literal. */
-
 export enum UserRole {
   ADMIN = 'admin',
   LEARNER = 'learner',
@@ -23,16 +20,6 @@ export enum ProgressStatus {
   COMPLETED = 'completed',
 }
 
-/**
- * A learner is considered to have "watched" the video once their furthest
- * watched point crosses this share of the duration. Videos rarely get watched
- * to the literal final frame (credits, player rounding), so we leave a margin.
- */
 export const COMPLETION_WATCH_THRESHOLD = 0.95;
 
-/**
- * How far ahead of their furthest watched point a learner may answer. The
- * player saves whole seconds, so a question at 10s can arrive with a saved
- * position of 9 — without a small margin that legitimate answer is refused.
- */
 export const ANSWER_POSITION_GRACE_SECONDS = 2;

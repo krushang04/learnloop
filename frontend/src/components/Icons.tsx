@@ -1,7 +1,3 @@
-/**
- * Inline SVG icons. Hand-rolled rather than pulled from a package so the
- * bundle stays small and every icon shares one stroke weight and corner style.
- */
 import type { SVGProps } from 'react';
 
 const base = (props: SVGProps<SVGSVGElement>) => ({

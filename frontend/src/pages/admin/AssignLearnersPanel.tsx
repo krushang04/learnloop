@@ -15,7 +15,6 @@ import { UsersIcon, PlusIcon, CloseIcon } from '@/components/Icons';
 import { getErrorMessage } from '@/lib/baseQuery';
 import { formatDate } from '@/lib/format';
 
-/** Assigned-learner list plus the picker dialog for adding more. */
 export function AssignLearnersPanel({ videoId }: { videoId: string }) {
   const [isPickerOpen, setPickerOpen] = useState(false);
   const [search, setSearch] = useState('');

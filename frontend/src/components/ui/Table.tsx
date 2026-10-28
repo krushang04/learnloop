@@ -1,10 +1,6 @@
 import clsx from 'clsx';
 import { ReactNode } from 'react';
 
-/**
- * Tables scroll horizontally on small screens rather than squashing columns,
- * which keeps the report readable on a phone.
- */
 export function Table({ children, className }: { children: ReactNode; className?: string }) {
   return (
     <div className="w-full overflow-x-auto">

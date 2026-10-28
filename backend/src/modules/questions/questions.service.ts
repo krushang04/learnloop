@@ -7,7 +7,6 @@ import { UpdateQuestionDto } from './dto/update-question.dto';
 import { Response, ResponseDocument } from 'src/modules/responses/schemas/response.schema';
 import { Question, QuestionDocument } from './schemas/question.schema';
 
-/** The learner-safe projection of a question: no correct answers, no explanation. */
 export interface LearnerQuestion {
   id: string;
   timestampSeconds: number;
@@ -65,8 +64,6 @@ export class QuestionsService {
     return question.save();
   }
 
-  /** Deleting a question also drops the answers to it, which would otherwise
-   *  be unreadable rows in the admin report pointing at nothing. */
   async remove(id: string): Promise<Types.ObjectId> {
     const question = await this.findByIdOrFail(id);
     await this.responseModel.deleteMany({ questionId: question._id }).exec();
@@ -74,7 +71,6 @@ export class QuestionsService {
     return question.videoId;
   }
 
-  /** Grouped count, so a video list does not fire one query per row. */
   async countByVideoIds(videoIds: Types.ObjectId[]): Promise<Map<string, number>> {
     if (!videoIds.length) return new Map();
     const rows = await this.questionModel.aggregate<{ _id: Types.ObjectId; count: number }>([
@@ -98,7 +94,6 @@ export class QuestionsService {
       .exec();
   }
 
-  /** Questions that would be unanswerable/ungradable if the video went live. */
   async findInvalidForPublish(videoId: string) {
     return this.questionModel
       .find({
@@ -117,10 +112,6 @@ export class QuestionsService {
       .exec();
   }
 
-  /**
-   * Grades an answer. Lives here, server-side, because the correct answers must
-   * never reach the browser — the learner payload has them stripped.
-   */
   grade(
     question: QuestionDocument,
     answer: { selectedOptionKeys?: string[]; answerText?: string },
@@ -146,7 +137,6 @@ export class QuestionsService {
         throw new BadRequestException('This question accepts only one option');
       }
 
-      // Exact set match: every correct option picked, nothing extra.
       const picked = new Set(selected);
       const expected = new Set(question.correctOptionKeys);
       isCorrect =
@@ -167,10 +157,6 @@ export class QuestionsService {
     };
   }
 
-  /**
-   * Type-specific rules that class-validator cannot express on its own, since
-   * which fields are required depends on `type`.
-   */
   private assertShapeIsValid(type: QuestionType, dto: Partial<CreateQuestionDto>): void {
     const options = dto.options ?? [];
     const correctKeys = dto.correctOptionKeys ?? [];
@@ -213,8 +199,6 @@ export class QuestionsService {
     }
   }
 
-  /** Drops fields that do not apply to the chosen type, so stale data from a
-   *  type switch cannot linger and affect grading. */
   private normalize(dto: CreateQuestionDto) {
     const isShortAnswer = dto.type === QuestionType.SHORT_ANSWER;
     return {

@@ -14,10 +14,6 @@ import { COMPLETION_THRESHOLD } from '@/types';
 import { formatDuration } from '@/lib/format';
 import { getErrorMessage } from '@/lib/baseQuery';
 
-/**
- * Creates a video. Questions and assignments are added afterwards on the detail
- * page — a video has to exist before anything can hang off it.
- */
 export function VideoFormPage() {
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
@@ -26,19 +22,15 @@ export function VideoFormPage() {
   const [durationSeconds, setDurationSeconds] = useState('');
   const [tags, setTags] = useState('');
   const [formError, setFormError] = useState<string | null>(null);
-  // Set once the admin edits the duration by hand, so a later probe result
-  // cannot overwrite a deliberate override.
+
   const [isDurationManual, setDurationManual] = useState(false);
 
   const [createVideo, { isLoading }] = useCreateVideoMutation();
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
 
-  // Reads the real length out of the file header as soon as a URL is pasted.
   const probe = useVideoDuration(videoUrl);
 
-  // A manual override longer than the file leaves the 95% threshold out of
-  // reach, so the video could never be completed. Refused rather than warned.
   const typed = Number(durationSeconds) || 0;
   const realLength = probe.status === 'ready' ? (probe.seconds ?? 0) : 0;
   const isUnreachable =
@@ -139,10 +131,6 @@ export function VideoFormPage() {
               placeholder="https://cdn.example.com/lesson.jpg"
             />
 
-            {/* The completion length comes from the URL, so it reports itself here rather
-                than sitting as an empty box the admin has to wonder about. The
-                input only appears when detection cannot answer, or when someone
-                deliberately asks to set it by hand. */}
             {probe.status === 'probing' && (
               <p className="flex items-center gap-2 text-sm text-slate-500">
                 <Spinner size="sm" />

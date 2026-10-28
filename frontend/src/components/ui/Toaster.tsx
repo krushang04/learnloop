@@ -13,7 +13,6 @@ function ToastItem({ toast }: { toast: Toast }) {
   const dispatch = useAppDispatch();
 
   useEffect(() => {
-    // Errors linger longer — they usually carry something to read.
     const timeout = setTimeout(
       () => dispatch(toastDismissed(toast.id)),
       toast.variant === 'error' ? 6000 : 3500,

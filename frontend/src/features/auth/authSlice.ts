@@ -7,24 +7,18 @@ const USER_KEY = 'learnloop.user';
 export interface AuthState {
   token: string | null;
   user: User | null;
-  /** True until the stored session has been re-verified against the API. */
+
   isRestoring: boolean;
-  /** Set when a 401 ends the session, so the login screen can explain why. */
+
   expiredMessage: string | null;
 }
 
-/**
- * Seeds state from localStorage so a refresh does not flash the login screen.
- * The token is still re-verified by an `auth/me` call on mount — this is only
- * an optimistic starting point.
- */
 function readStoredSession(): Pick<AuthState, 'token' | 'user'> {
   try {
     const token = localStorage.getItem(TOKEN_KEY);
     const rawUser = localStorage.getItem(USER_KEY);
     return { token, user: rawUser ? (JSON.parse(rawUser) as User) : null };
   } catch {
-    // Private browsing or disabled storage: fall back to a logged-out session.
     return { token: null, user: null };
   }
 }
@@ -48,7 +42,7 @@ function persist(token: string | null, user: User | null) {
       localStorage.removeItem(USER_KEY);
     }
   } catch {
-    // Storage unavailable — the session still works for this tab.
+    return;
   }
 }
 
@@ -64,7 +58,6 @@ const authSlice = createSlice({
       persist(action.payload.accessToken, action.payload.user);
     },
 
-    /** Session verified on mount — refreshes the cached user record. */
     sessionRestored(state, action: PayloadAction<User>) {
       state.user = action.payload;
       state.isRestoring = false;

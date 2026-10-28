@@ -10,7 +10,7 @@ interface ModalProps {
   children: ReactNode;
   footer?: ReactNode;
   size?: 'sm' | 'md' | 'lg' | 'xl';
-  /** Blocking modals (the quiz) cannot be dismissed by Escape or a backdrop click. */
+
   dismissible?: boolean;
 }
 
@@ -36,11 +36,10 @@ export function Modal({
     };
 
     document.addEventListener('keydown', onKeyDown);
-    // Stop the page behind the modal from scrolling.
+
     const previousOverflow = document.body.style.overflow;
     document.body.style.overflow = 'hidden';
 
-    // Move focus into the dialog so keyboard and screen-reader users land here.
     panelRef.current?.focus();
 
     return () => {
@@ -86,7 +85,6 @@ export function Modal({
   );
 }
 
-/** Confirmation prompt for destructive actions. */
 export function ConfirmDialog({
   isOpen,
   title,

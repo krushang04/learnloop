@@ -10,7 +10,7 @@ export interface GradedAnswer {
   questionId: string;
   isCorrect: boolean;
   pointsAwarded: number;
-  /** Revealed only after the learner has answered. */
+
   explanation: string;
   attempts: number;
 }
@@ -22,15 +22,6 @@ export class ResponsesService {
     private readonly questionsService: QuestionsService,
   ) {}
 
-  /**
-   * Grades and stores an answer. Upserts on (learner, question) so a re-answer
-   * replaces the previous one and increments `attempts`, which keeps reporting
-   * a direct lookup rather than a "latest of many" aggregation.
-   *
-   * `reachedSeconds` is the learner's furthest watched point. Answers for
-   * questions beyond it are refused, so the stored responses can never describe
-   * a learner who answered something they had not yet played past.
-   */
   async submit(
     videoId: string,
     questionId: string,
@@ -40,16 +31,13 @@ export class ResponsesService {
   ): Promise<GradedAnswer> {
     const question = await this.questionsService.findByIdOrFail(questionId);
 
-    // Guards against a learner POSTing another video's question id to this route.
     if (question.videoId.toString() !== videoId) {
       throw new BadRequestException('This question does not belong to the given video');
     }
     if (!question.isActive) {
       throw new BadRequestException('This question is no longer active');
     }
-    // The client pauses the video on a question, but nothing stops a caller
-    // from POSTing straight to this route. Checking against the furthest point
-    // the learner has actually reached keeps the answers in playback order.
+
     if (question.timestampSeconds > reachedSeconds + ANSWER_POSITION_GRACE_SECONDS) {
       throw new ForbiddenException(
         'You have not reached this question yet — keep watching to unlock it',
@@ -93,8 +81,6 @@ export class ResponsesService {
     };
   }
 
-  /** The learner's own answers for one video — used to rehydrate the player
-   *  after a refresh so already-answered questions do not fire again. */
   async findForLearnerAndVideo(videoId: string, learnerId: string) {
     return this.responseModel
       .find({

@@ -12,7 +12,6 @@ const OTHER_VIDEO_ID = '6530f1a2b3c4d5e6f7a8b9c1';
 const QUESTION_ID = '6530f1a2b3c4d5e6f7a8b9c2';
 const LEARNER_ID = '6530f1a2b3c4d5e6f7a8b9c3';
 
-/** A question that fires 30 seconds into the video. */
 const makeQuestion = (overrides: Record<string, unknown> = {}): any => ({
   _id: new Types.ObjectId(QUESTION_ID),
   videoId: new Types.ObjectId(VIDEO_ID),
@@ -28,7 +27,6 @@ describe('ResponsesService.submit() — playback position gate', () => {
   let questionsService: { findByIdOrFail: jest.Mock; grade: jest.Mock };
   let responseModel: { findOneAndUpdate: jest.Mock };
 
-  /** Stands in for the stored response the upsert returns. */
   const savedResponse = {
     questionId: new Types.ObjectId(QUESTION_ID),
     isCorrect: true,
@@ -39,7 +37,7 @@ describe('ResponsesService.submit() — playback position gate', () => {
   beforeEach(async () => {
     questionsService = {
       findByIdOrFail: jest.fn().mockResolvedValue(makeQuestion()),
-      // Grading is covered by its own suite; here it only needs to return.
+
       grade: jest.fn().mockReturnValue({ isCorrect: true, pointsAwarded: 1 }),
     };
     responseModel = {
@@ -73,12 +71,11 @@ describe('ResponsesService.submit() — playback position gate', () => {
 
   it('refuses an answer for a question the learner has not reached', async () => {
     await expect(submit(5)).rejects.toThrow(ForbiddenException);
-    // Nothing is written when the gate rejects — no half-recorded attempt.
+
     expect(responseModel.findOneAndUpdate).not.toHaveBeenCalled();
   });
 
   it('allows the grace margin, since positions are saved as whole seconds', async () => {
-    // A question at 30s reached with a saved position of 29 is legitimate.
     await expect(submit(29)).resolves.toMatchObject({ isCorrect: true });
   });
 

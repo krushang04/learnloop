@@ -1,5 +1,3 @@
-/** Mirrors the enums in the API. Kept in sync by hand — the API is the source of truth. */
-
 export type UserRole = 'admin' | 'learner';
 export type VideoStatus = 'draft' | 'published';
 export type QuestionType = 'single_choice' | 'multiple_choice' | 'short_answer';
@@ -25,7 +23,6 @@ export interface QuestionOption {
   text: string;
 }
 
-/** Admin-facing question: includes the correct answers. */
 export interface Question {
   _id: string;
   id?: string;
@@ -41,7 +38,6 @@ export interface Question {
   isActive: boolean;
 }
 
-/** Learner-facing question: the API strips the answers before sending it. */
 export interface LearnerQuestion {
   id: string;
   timestampSeconds: number;
@@ -234,8 +230,4 @@ export interface LearnerResponseReport {
   }[];
 }
 
-/**
- * Share of the stated completion length a learner must watch before the video
- * counts as watched. Mirrors COMPLETION_WATCH_THRESHOLD on the API.
- */
 export const COMPLETION_THRESHOLD = 0.95;

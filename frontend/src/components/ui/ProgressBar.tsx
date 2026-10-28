@@ -1,6 +1,5 @@
 import clsx from 'clsx';
 
-/** A single progress bar used by cards, tables and the player alike. */
 export function ProgressBar({
   value,
   tone = 'brand',

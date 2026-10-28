@@ -32,7 +32,6 @@ export function VideoListPage() {
     limit: 12,
   });
 
-  // A filter change makes the current page number meaningless.
   const applyFilter = (next: VideoStatus | '') => {
     setStatus(next);
     setPage(1);

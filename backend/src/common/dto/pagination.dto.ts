@@ -2,7 +2,6 @@ import { ApiPropertyOptional } from '@nestjs/swagger';
 import { Type } from 'class-transformer';
 import { IsInt, IsOptional, IsString, Max, Min, MaxLength } from 'class-validator';
 
-/** Shared `?page=&limit=&search=` query contract for every list endpoint. */
 export class PaginationQueryDto {
   @ApiPropertyOptional({ default: 1, minimum: 1 })
   @IsOptional()
@@ -35,7 +34,6 @@ export function buildPaginationMeta(total: number, page: number, limit: number) 
   return { total, page, limit, totalPages, hasNextPage: page < totalPages };
 }
 
-/** Escapes user input before it goes into a RegExp, so `a.*b` is a literal search. */
 export function escapeRegex(input: string): string {
   return input.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 }

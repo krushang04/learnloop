@@ -7,8 +7,6 @@ export interface ApiEnvelope<T> {
   meta?: Record<string, unknown>;
 }
 
-/** Internal marker a service returns when it wants to attach pagination meta
- *  alongside the payload. Unwrapped here so controllers stay declarative. */
 export class Paginated<T> {
   constructor(
     public readonly items: T,
@@ -16,10 +14,6 @@ export class Paginated<T> {
   ) {}
 }
 
-/**
- * Wraps every successful response in `{ success: true, data }` so clients have
- * one shape to parse. Errors get the mirror shape from AllExceptionsFilter.
- */
 @Injectable()
 export class TransformInterceptor<T> implements NestInterceptor<T, ApiEnvelope<T>> {
   intercept(_context: ExecutionContext, next: CallHandler): Observable<ApiEnvelope<any>> {

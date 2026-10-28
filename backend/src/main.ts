@@ -16,8 +16,6 @@ async function bootstrap() {
 
   app.setGlobalPrefix(apiPrefix);
 
-  // crossOriginResourcePolicy is relaxed so the Swagger UI assets load cleanly
-  // when the API and the SPA sit on different ports in development.
   app.use(helmet({ crossOriginResourcePolicy: { policy: 'cross-origin' } }));
 
   app.enableCors({
@@ -28,8 +26,6 @@ async function bootstrap() {
 
   app.useGlobalPipes(
     new ValidationPipe({
-      // Strip unknown keys, and reject outright rather than silently ignoring
-      // them — a typo'd field name should fail loudly, not vanish.
       whitelist: true,
       forbidNonWhitelisted: true,
       transform: true,

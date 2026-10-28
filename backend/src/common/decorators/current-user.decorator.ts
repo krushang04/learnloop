@@ -1,7 +1,6 @@
 import { ExecutionContext, createParamDecorator } from '@nestjs/common';
 import { UserRole } from 'src/common/enums';
 
-/** The authenticated principal, as produced by JwtStrategy.validate(). */
 export interface AuthUser {
   id: string;
   email: string;

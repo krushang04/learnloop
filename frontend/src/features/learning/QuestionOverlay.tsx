@@ -14,11 +14,6 @@ interface Props {
   onContinue: () => void;
 }
 
-/**
- * The blocking quiz card shown over the paused video. It has no dismiss
- * control on purpose: the video stays paused until the question is answered,
- * which is what makes "all questions answered" a meaningful completion rule.
- */
 export function QuestionOverlay({
   question,
   isSubmitting,
@@ -30,7 +25,6 @@ export function QuestionOverlay({
   const [selectedKeys, setSelectedKeys] = useState<string[]>([]);
   const [answerText, setAnswerText] = useState('');
 
-  // Clear the previous question's input when a new one appears.
   useEffect(() => {
     setSelectedKeys([]);
     setAnswerText('');

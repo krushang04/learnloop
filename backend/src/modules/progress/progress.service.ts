@@ -13,13 +13,11 @@ export class ProgressService {
     @InjectModel(Progress.name) private readonly progressModel: Model<ProgressDocument>,
     @InjectModel(Response.name) private readonly responseModel: Model<ResponseDocument>,
     private readonly questionsService: QuestionsService,
-    // Circular by nature: videos recalculate progress when their duration
-    // changes, and progress needs the video to know what to divide by.
+
     @Inject(forwardRef(() => VideosService))
     private readonly videosService: VideosService,
   ) {}
 
-  /** Returns the learner's row, creating an empty one on first open. */
   async getOrCreate(videoId: string, learnerId: string): Promise<ProgressDocument> {
     const filter = {
       videoId: new Types.ObjectId(videoId),
@@ -35,11 +33,6 @@ export class ProgressService {
       .exec();
   }
 
-  /**
-   * Autosave target. Called every few seconds during playback and on pause,
-   * seek and unload, so it must be cheap and strictly monotonic in
-   * `maxPositionSeconds` — rewinding to re-watch must never reduce completion.
-   */
   async savePosition(videoId: string, learnerId: string, positionSeconds: number, reportedDuration?: number) {
     if (reportedDuration) {
       await this.videosService.backfillDuration(videoId, reportedDuration);
@@ -48,7 +41,6 @@ export class ProgressService {
     const video = await this.videosService.findByIdOrFail(videoId);
     const duration = video.durationSeconds || reportedDuration || 0;
 
-    // Never trust a client-supplied position past the end of the video.
     const position = duration
       ? Math.min(Math.max(positionSeconds, 0), duration)
       : Math.max(positionSeconds, 0);
@@ -63,13 +55,6 @@ export class ProgressService {
     return progress.save();
   }
 
-  /**
-   * Recomputes the derived fields from the two facts we actually store:
-   * how far the learner has watched, and how many questions they have answered.
-   *
-   * Completion requires BOTH — watching to the end while skipping every
-   * question is not completing the lesson.
-   */
   async recalculate(progress: ProgressDocument, durationSeconds?: number): Promise<void> {
     const videoId = progress.videoId.toString();
     const duration =
@@ -84,8 +69,6 @@ export class ProgressService {
 
     progress.answeredQuestionCount = answeredCount;
 
-    // Without a known duration we cannot express watch progress as a
-    // percentage; report 0 rather than a misleading number.
     const watchRatio = duration > 0 ? Math.min(progress.maxPositionSeconds / duration, 1) : 0;
     progress.completionPercentage = Math.round(watchRatio * 100);
 
@@ -105,17 +88,6 @@ export class ProgressService {
     }
   }
 
-  /**
-   * Re-derives every learner's progress on one video.
-   *
-   * Progress is derived from the video's duration and its question count, so an
-   * admin editing either of those silently invalidates every stored row. Without
-   * this, the numbers stay stale until each learner happens to open the video
-   * again, and the admin report shows figures that were true under the old
-   * settings — the one place those figures are supposed to be trustworthy.
-   *
-   * Returns how many rows were touched, so the caller can tell the admin.
-   */
   async recalculateForVideo(videoId: string): Promise<number> {
     const video = await this.videosService.findByIdOrFail(videoId);
     const rows = await this.progressModel
@@ -123,8 +95,6 @@ export class ProgressService {
       .exec();
 
     for (const row of rows) {
-      // A saved position past the new end would resume a learner beyond the
-      // video, so pull it back inside the new bounds first.
       if (video.durationSeconds > 0) {
         row.maxPositionSeconds = Math.min(row.maxPositionSeconds, video.durationSeconds);
         row.lastPositionSeconds = Math.min(row.lastPositionSeconds, video.durationSeconds);
@@ -136,7 +106,6 @@ export class ProgressService {
     return rows.length;
   }
 
-  /** Re-derives and persists after an answer is submitted. */
   async refreshAfterAnswer(videoId: string, learnerId: string): Promise<ProgressDocument> {
     const progress = await this.getOrCreate(videoId, learnerId);
     if (!progress.startedAt) progress.startedAt = new Date();

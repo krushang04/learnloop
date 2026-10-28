@@ -7,10 +7,6 @@ import { VideosService } from 'src/modules/videos/videos.service';
 import { ProgressService } from './progress.service';
 import { Progress } from './schemas/progress.schema';
 
-/**
- * recalculate() is the rule that decides whether a learner has finished a
- * lesson, so it is tested directly against a plain progress object.
- */
 describe('ProgressService.recalculate', () => {
   let service: ProgressService;
   let answeredCount = 0;
@@ -145,13 +141,7 @@ describe('ProgressService.recalculate', () => {
   });
 });
 
-/**
- * Progress is derived from the video's duration and question count, so editing
- * either has to re-derive every stored row. These cover the admin-side edits
- * that would otherwise leave the report showing figures from the old settings.
- */
 describe('ProgressService.recalculateForVideo', () => {
-  // recalculateForVideo casts the id, so the fixture has to be a real ObjectId.
   const VIDEO_ID = '6530f1a2b3c4d5e6f7a8b9c0';
 
   let service: ProgressService;
@@ -208,7 +198,6 @@ describe('ProgressService.recalculateForVideo', () => {
 
     await service.recalculateForVideo(VIDEO_ID);
 
-    // Resuming at 10s on a 5s video would drop the learner past the end.
     expect(row.lastPositionSeconds).toBe(5);
     expect(row.maxPositionSeconds).toBe(5);
     expect(row.completionPercentage).toBe(100);
@@ -222,7 +211,6 @@ describe('ProgressService.recalculateForVideo', () => {
 
     await service.recalculateForVideo(VIDEO_ID);
 
-    // 50 of 200 is 25%, not the 50% it was when the video was 100s.
     expect(row.completionPercentage).toBe(25);
   });
 

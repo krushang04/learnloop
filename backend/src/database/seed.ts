@@ -1,12 +1,3 @@
-/**
- * Seeds a realistic demo dataset: one admin, four learners, four videos with
- * timestamp questions of every type, assignments, and partial learner progress
- * so the admin report has something to show on first login.
- *
- * Safe to re-run: it wipes the collections it owns first.
- *
- *   npm run seed
- */
 import 'reflect-metadata';
 import * as bcrypt from 'bcryptjs';
 import { config as loadEnv } from 'dotenv';
@@ -39,10 +30,6 @@ const Assignment = mongoose.model('Assignment', AssignmentSchema);
 const Progress = mongoose.model('Progress', ProgressSchema);
 const Response = mongoose.model('Response', ResponseSchema);
 
-/**
- * Public, CORS-friendly sample MP4s. They are short, which makes the
- * timestamp-question behaviour easy to demonstrate end to end.
- */
 const SAMPLE_VIDEOS = [
   {
     title: 'Getting Started with Trade Compliance',
@@ -277,8 +264,6 @@ async function seed() {
     console.log(`Created video "${spec.title}" with ${questions.length} question(s)`);
   }
 
-  // Published videos only — assigning a draft would be invisible to learners
-  // and would make the demo confusing.
   const publishedVideos = createdVideos.slice(0, 3);
 
   for (const video of publishedVideos) {
@@ -293,11 +278,9 @@ async function seed() {
   }
   console.log(`Assigned ${publishedVideos.length} videos to ${learners.length} learners`);
 
-  // --- Demo progress so the admin report is not empty on first login ---
   const [firstVideo, secondVideo] = publishedVideos;
   const [asha, rahul, priya] = learners;
 
-  // Asha: finished the first video, every question answered correctly.
   await seedProgress({
     video: firstVideo,
     learner: asha._id as Types.ObjectId,
@@ -306,7 +289,6 @@ async function seed() {
     allCorrect: true,
   });
 
-  // Rahul: halfway through, one question answered and got it wrong.
   await seedProgress({
     video: firstVideo,
     learner: rahul._id as Types.ObjectId,
@@ -315,15 +297,12 @@ async function seed() {
     allCorrect: false,
   });
 
-  // Priya: just started the second video, nothing answered yet.
   await seedProgress({
     video: secondVideo,
     learner: priya._id as Types.ObjectId,
     position: Math.round(secondVideo.duration * 0.2),
     answerCount: 0,
   });
-
-  // Daniel is left untouched on purpose, to exercise the "not started" state.
 
   console.log('Seeded demo progress and responses\n');
   console.log('─'.repeat(58));
@@ -368,8 +347,7 @@ async function seedProgress(input: {
         ? []
         : correct
           ? question.correctOptionKeys
-          : // Deliberately pick an option that is not in the correct set.
-            [question.options.find((o: any) => !question.correctOptionKeys.includes(o.key))?.key ?? 'a'],
+          : [question.options.find((o: any) => !question.correctOptionKeys.includes(o.key))?.key ?? 'a'],
       answerText: isShortAnswer ? (correct ? question.acceptedAnswers[0] : 'not sure') : '',
       isCorrect: correct,
       pointsAwarded: correct ? question.points : 0,

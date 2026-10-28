@@ -25,11 +25,6 @@ export class JwtStrategy extends PassportStrategy(Strategy, 'jwt') {
     });
   }
 
-  /**
-   * Re-reads the user on every request rather than trusting the token body, so
-   * a deactivated or role-changed account loses access immediately instead of
-   * when their token happens to expire.
-   */
   async validate(payload: JwtPayload): Promise<AuthUser> {
     const user = await this.usersService.findById(payload.sub);
     if (!user || !user.isActive) {

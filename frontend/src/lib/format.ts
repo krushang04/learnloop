@@ -1,6 +1,3 @@
-/** Formatting helpers shared by the player, tables and cards. */
-
-/** 125 → "2:05", 3725 → "1:02:05" */
 export function formatDuration(totalSeconds: number): string {
   if (!Number.isFinite(totalSeconds) || totalSeconds < 0) return '0:00';
 
@@ -31,7 +28,6 @@ export function formatDateTime(iso: string | null | undefined): string {
   });
 }
 
-/** "3 hours ago" — used for last-activity columns where exact time is noise. */
 export function formatRelative(iso: string | null | undefined): string {
   if (!iso) return 'Never';
 

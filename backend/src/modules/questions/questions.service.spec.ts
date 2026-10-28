@@ -6,7 +6,6 @@ import { Question } from './schemas/question.schema';
 import { QuestionsService } from './questions.service';
 import { Response } from 'src/modules/responses/schemas/response.schema';
 
-/** Builds a question stub shaped like the hydrated document grade() receives. */
 const makeQuestion = (overrides: Partial<Question> = {}): any => ({
   type: QuestionType.SINGLE_CHOICE,
   prompt: 'Example question',

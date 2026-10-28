@@ -9,7 +9,6 @@ import { getErrorMessage } from '@/lib/baseQuery';
 
 type Mode = 'login' | 'register';
 
-/** Shown as one-click fills so a reviewer never has to type a password. */
 const DEMO_ACCOUNTS = [
   { label: 'Admin', email: 'admin@learnloop.dev', password: 'Admin@123' },
   { label: 'Learner', email: 'asha@learnloop.dev', password: 'Learner@123' },
@@ -31,7 +30,6 @@ export function LoginPage() {
   const [register, registerState] = useRegisterMutation();
   const isSubmitting = loginState.isLoading || registerState.isLoading;
 
-  // Clear the "session expired" notice as soon as the user starts over.
   useEffect(() => {
     return () => {
       if (expiredMessage) dispatch(expiredMessageCleared());

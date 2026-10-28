@@ -9,7 +9,6 @@ import { sessionExpired } from '@/features/auth/authSlice';
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL ?? 'http://localhost:4000/api';
 
-/** The error shape the API's exception filter returns. */
 export interface ApiError {
   success: false;
   statusCode: number;
@@ -28,11 +27,6 @@ const rawBaseQuery = fetchBaseQuery({
   },
 });
 
-/**
- * Unwraps the API's `{ success, data, meta }` envelope so components receive
- * the payload directly, and turns a 401 into a single global logout instead of
- * every screen having to handle an expired token on its own.
- */
 export const baseQueryWithAuth: BaseQueryFn<
   string | FetchArgs,
   unknown,
@@ -41,8 +35,6 @@ export const baseQueryWithAuth: BaseQueryFn<
   const result = await rawBaseQuery(args, api, extraOptions);
 
   if (result.error) {
-    // 401 means the token is gone or expired. Anything else (403, 404, 422)
-    // is a legitimate response the screen should render.
     if (result.error.status === 401) {
       const state = api.getState() as RootState;
       if (state.auth.token) api.dispatch(sessionExpired());
@@ -52,8 +44,6 @@ export const baseQueryWithAuth: BaseQueryFn<
 
   const envelope = result.data as { data?: unknown; meta?: unknown } | undefined;
   if (envelope && typeof envelope === 'object' && 'data' in envelope) {
-    // Pagination meta is preserved by nesting it next to the items, since
-    // RTK Query only passes the single `data` value through to the hook.
     return envelope.meta !== undefined
       ? { data: { items: envelope.data, meta: envelope.meta } }
       : { data: envelope.data };
@@ -62,7 +52,6 @@ export const baseQueryWithAuth: BaseQueryFn<
   return result;
 };
 
-/** Pulls a human-readable message out of whatever RTK Query handed back. */
 export function getErrorMessage(error: unknown, fallback = 'Something went wrong'): string {
   if (!error) return fallback;
 

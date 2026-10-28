@@ -1,7 +1,3 @@
-/**
- * Fails fast at boot on missing or obviously wrong configuration, so a bad
- * deploy dies at startup instead of at the first request.
- */
 export function validateEnv(config: Record<string, unknown>): Record<string, unknown> {
   const errors: string[] = [];
 
